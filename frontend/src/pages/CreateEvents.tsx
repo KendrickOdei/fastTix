@@ -135,7 +135,7 @@ export default function CreateEvents() {
             form.append('promoImages', file); // The key name must match what your backend expects
           });
 
-      const response = await fetch('http://localhost:5000/api/events/create-event', {
+      const response = await fetch('https://fast-tix-backend.vercel.app/', {
         method: 'POST',
         headers: {
           
