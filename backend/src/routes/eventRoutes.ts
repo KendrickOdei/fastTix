@@ -118,7 +118,7 @@ router.post("/create-event",
   
 });
 
-router.get('/events', async (req: Request, res: Response) => {
+router.get('/', async (req: Request, res: Response) => {
   try {
     const events = await Event.find().populate('organizerId', 'organizationName');
     res.status(200).json(events);
