@@ -1,5 +1,5 @@
 import express, {Response, Request} from "express";
-import Event from "../models/Event"; 
+import Event from "../models/event"; 
 import authMiddleware from "../middleware/authMiddleware";  // Import AuthRequest
 import { body, validationResult } from 'express-validator';
 import { IUser } from "../models/user";
