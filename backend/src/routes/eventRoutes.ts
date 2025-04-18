@@ -5,31 +5,31 @@ import { body, validationResult } from 'express-validator';
 import { IUser } from "../models/user";
 import multer , { FileFilterCallback } from 'multer';
 import path from "path";
+import {v2 as cloudinary} from "cloudinary"
 
 interface AuthRequest extends Request {
   user?: IUser; // Match index.d.ts
 }
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req: Request, file: Express.Multer.File, cb: FileFilterCallback): void => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (['.jpg', '.jpeg', '.png'].includes(ext)) {
-      cb(null, true); 
+  fileFilter: (req, file, cb) => {
+    const ext = file.mimetype.split('/')[1].toLowerCase();
+    if (['jpg', 'jpeg', 'png'].includes(ext)) {
+      cb(null, true);
     } else {
-      cb(new Error('Only .jpg, .jpeg, .png files are allowed')); 
+      cb(new Error('Only .jpg, .jpeg, .png files are allowed'));
     }
   },
+  
 });
 const router = express.Router();
 
@@ -67,6 +67,34 @@ router.post("/create-event",
       res.status(401).json({ message: 'User not authenticated' });
       return;
     }
+    const streamUpload = (fileBuffer: Buffer, folder: string): Promise<any> => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+        stream.end(fileBuffer);
+      });
+    };
+    
+
+    let imageUrl: string | undefined;
+    if (files['image'] && files['image'][0]) {
+      const result = await streamUpload(files['image'][0].buffer, 'fasttix/events');
+      imageUrl = result.secure_url;
+    }
+    
+    let promoImageUrls: string[] = [];
+    if (files['promoImages'] && files['promoImages'].length > 0) {
+      for (const file of files['promoImages']) {
+        const result = await streamUpload(file.buffer, 'fasttix/promo');
+        promoImageUrls.push(result.secure_url);
+      }
+    }
+    
     const newEvent = new Event({
         name,
         description,
@@ -76,8 +104,8 @@ router.post("/create-event",
         price,
         ticketsAvailable,
         organizerId: req.user._id,// Gets user ID from token
-        image: files['image']?.[0]?.filename ? `/uploads/${files['image'][0].filename}` : undefined,
-        promoImages: files['promoImages']?.map(file => `/uploads/${file.filename}`) || [],
+        image: imageUrl,
+        promoImages: promoImageUrls,
       
     });
 

@@ -28,7 +28,7 @@ export default function EventDetails() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/events/events/${id}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/event/events/${id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch event');
         }
@@ -68,7 +68,7 @@ export default function EventDetails() {
         </button>
         {event.image && (
           <img
-            src={`http://localhost:5000${event.image}`}
+            src={event.image}
             alt={event.name}
             className="w-full h-64 object-cover rounded-lg mb-6"
           />
@@ -100,7 +100,7 @@ export default function EventDetails() {
             {event.promoImages && event.promoImages.length > 0 ? (
               <div className="relative h-64 rounded-lg overflow-hidden">
                 <img
-                  src={`http://localhost:5000${event.promoImages[currentPromoIndex]}`}
+                  src={event.promoImages[currentPromoIndex]}
                   alt={`Promo ${currentPromoIndex + 1}`}
                   className="w-full h-full object-cover"
                 />

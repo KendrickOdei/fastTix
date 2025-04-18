@@ -24,7 +24,7 @@ const Hero = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/events/events');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/events/events`);
         if (!response.ok) {
           throw new Error('Failed to fetch events');
         }
@@ -72,7 +72,7 @@ const Hero = () => {
             >
               {event.image ? (
                 <img
-                  src={`http://localhost:5000${event.image}`}
+                  src={event.image}
                   alt={event.name}
                   className="w-full h-48 object-cover rounded-t-lg mb-4"
                 />
