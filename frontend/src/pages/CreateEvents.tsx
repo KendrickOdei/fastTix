@@ -135,14 +135,8 @@ export default function CreateEvents() {
             form.append('promoImages', file); // The key name must match what your backend expects
           });
 
-      const response = await fetch('https://fast-tix-backend.vercel.app/', {
-        method: 'POST',
-        headers: {
-          
-          Authorization: `Bearer ${token}`,
-        },
-        body: form,
-      });
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/events`) 
+       
 
       const result = await response.json();
 
