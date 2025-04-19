@@ -24,7 +24,7 @@ const Hero = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/events/`);
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/events/`);
         if (!response.ok) {
           throw new Error('Failed to fetch events');
         }
