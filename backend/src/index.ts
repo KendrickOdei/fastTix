@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cors({
   
-    origin: ['https://fast-tix-sigma.vercel.app/'], //process.env.FRONTEND_URL,
+    origin: ['https://fast-tix-sigma.vercel.app'], //process.env.FRONTEND_URL,
     credentials: true
 }));
 
@@ -53,3 +53,19 @@ app.use('/api/verifyotp', verifyOtpRoute);
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+// const allowedOrigins = [
+//   'http://localhost:5173', // Vite local
+//   'https://fast-tix-sigma.vercel.app', // Vercel production
+// ];
+
+// app.use(cors({
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   credentials: true
+// }));
