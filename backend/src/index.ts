@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cors({
   
-    origin: process.env.FRONTEND_URL,
+    origin: ['https://fast-tix-sigma.vercel.app/'], //process.env.FRONTEND_URL,
     credentials: true
 }));
 
