@@ -135,8 +135,14 @@ export default function CreateEvents() {
             form.append('promoImages', file); // The key name must match what your backend expects
           });
 
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/events`) 
-       
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/events/events`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`, // If your backend is protected
+            },
+            body: form,
+          });
+                 
 
       const result = await response.json();
 
