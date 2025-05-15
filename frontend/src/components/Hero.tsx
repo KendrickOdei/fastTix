@@ -24,10 +24,13 @@ const Hero = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/events/`);
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const response = await fetch(`${baseUrl}/api/events/events`);
+        
         if (!response.ok) {
           throw new Error('Failed to fetch events');
         }
+  
         const data = await response.json();
         setEvents(data);
       } catch (err: any) {
@@ -36,10 +39,10 @@ const Hero = () => {
         setIsLoading(false);
       }
     };
-
+  
     fetchEvents();
   }, []);
-
+  
   
     return (
         <>
@@ -102,7 +105,7 @@ const Hero = () => {
                 <strong>Organizer:</strong> {event.organizerId.organizationName || 'Unknown'}
               </p>
               <Link
-                to={`/event/${event._id}`}
+                to={`/event-details/${event._id}`}
                 className="mt-4 inline-block bg-green-800 text-white py-2 px-4 rounded hover:bg-green-600"
               >
                 View Details

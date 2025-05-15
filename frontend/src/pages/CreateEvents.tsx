@@ -13,6 +13,7 @@ export default function CreateEvents() {
     venue: '',
     price: '',
     ticketsAvailable: '',
+    category: '',
     image: null as File | null,
     promoImages: [] as File[],
   
@@ -25,10 +26,20 @@ export default function CreateEvents() {
     venue: '',
     price: '',
     ticketsAvailable: '',
+    category: '',
     image: '',
     promoImages: '',
   
   });
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      category: value,
+    }));
+  };
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -82,6 +93,10 @@ export default function CreateEvents() {
       newErrors.venue = 'Venue is required';
       hasError = true;
     }
+     if(!formData.category.trim()){
+      newErrors.category ='Category is required'
+      hasError = true
+    }
     if (!formData.price.trim()) {
       newErrors.price = 'Price is required';
       hasError = true;
@@ -125,6 +140,7 @@ export default function CreateEvents() {
           form.append('time', formData.time);
           form.append('venue', formData.venue);
           form.append('price', formData.price);
+          form.append('category', formData.category);
           form.append('ticketsAvailable', formData.ticketsAvailable);
 
           if (formData.image) {
@@ -132,13 +148,14 @@ export default function CreateEvents() {
           }
 
           formData.promoImages.forEach((file) => {
-            form.append('promoImages', file); // The key name must match what your backend expects
+            form.append('promoImages', file); 
           });
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 
-          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/events/create-event`, {
+          const response = await fetch(`${baseUrl}/api/events/create-event`, {
             method: 'POST',
             headers: {
-              Authorization: `Bearer ${token}`, // If your backend is protected
+              Authorization: `Bearer ${token}`, 
             },
             body: form,
           });
@@ -151,7 +168,7 @@ export default function CreateEvents() {
       }
 
       alert('Event created successfully!');
-      navigate('/profile/my-events'); // Redirect to My Events (to be built)
+      navigate('/'); // Redirect to My Events (to be built)
     } catch (error: any) {
       alert(`Error: ${error.message}`);
     } finally {
@@ -280,6 +297,23 @@ export default function CreateEvents() {
               <p className="text-red-500 text-xs mt-1">{errors.ticketsAvailable}</p>
             )}
           </div>
+
+          <div>
+          <label className="block text-sm font-medium text-gray-700">Category</label>
+          <select
+            value={formData.category}
+            onChange={handleCategoryChange}
+            className="w-full border px-3 py-2 rounded"
+            required
+          >
+            <option value="">Select category</option>
+            <option value="Music">Music</option>
+            <option value="Sports">Sports</option>
+            <option value="Theater">Theater</option>
+            <option value="Comedy">Comedy</option>
+            <option value="Conference">Conference</option>
+          </select>
+        </div>
 
           <div className="flex justify-between mt-6">
             <button

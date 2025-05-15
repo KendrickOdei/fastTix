@@ -6,10 +6,13 @@ import { IUser } from "../models/user";
 import multer , { FileFilterCallback } from 'multer';
 import path from "path";
 import {v2 as cloudinary} from "cloudinary"
+import dotenv from 'dotenv'
 
 interface AuthRequest extends Request {
   user?: IUser; // Match index.d.ts
 }
+dotenv.config();
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -47,6 +50,7 @@ router.post("/create-event",
     body('time').notEmpty().withMessage('Time is required (e.g., 7:00 PM)'),
     body('venue').notEmpty().withMessage('Venue is required'),
     body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
+    body('category').notEmpty().withMessage('Category is required'),
     body('ticketsAvailable').isInt({ min: 0 }).withMessage('Tickets available must be a positive integer'),
   ],
   
@@ -57,7 +61,7 @@ router.post("/create-event",
       return
     }
  
-  const { name, description, date, time, venue, price, ticketsAvailable } = req.body;
+  const { name, description, date, time, venue, price, ticketsAvailable, category } = req.body;
   const files = (req.files ?? {}) as { [fieldname: string]: Express.Multer.File[] };
  
 
@@ -105,6 +109,7 @@ router.post("/create-event",
         ticketsAvailable,
         organizerId: req.user._id,// Gets user ID from token
         image: imageUrl,
+        category,
         promoImages: promoImageUrls,
       
     });
@@ -120,13 +125,18 @@ router.post("/create-event",
 
 router.get('/events', async (req: Request, res: Response) => {
   try {
-    const events = await Event.find().populate('organizerId', 'organizationName');
+    const {category} = req.query
+
+    const filter = category ? {category} : {}
+    const events = await Event.find(filter).populate('organizerId', 'organizationName').sort({createdAt: -1});
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
 
 router.get('/events/:id', async (req: Request, res: Response) => {
   try {
@@ -138,6 +148,19 @@ router.get('/events/:id', async (req: Request, res: Response) => {
     res.status(200).json(event);
   } catch (error) {
     console.error('Error fetching event:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/mine', authMiddleware, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?.id; // make sure req.user is available from middleware
+
+    const events = await Event.find({ organizerId: userId }).sort({ createdAt: -1 });
+
+    res.status(200).json(events);
+  } catch (error) {
+    console.error('Error fetching organizer events:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

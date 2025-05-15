@@ -5,11 +5,12 @@ import Register from "./pages/Register";
 import Hero from "./components/Hero";
 import CreateEvents from "./pages/CreateEvents";
 import TicketPurchase from "./pages/TicketPurchase";
-import PrivateRoute from "./components/PrivateRoute"
-import DashboardLayout from './dashboard/DashboardLayout';
+
 
 import DashboardPage from './dashboard/pages/DashboardPage';
-
+import SearchResults from "./pages/SearchResults";
+import EventDetails from "./pages/EventDetails";
+import MyEvents from './pages/MyEvents'
 
 
 function App() {
@@ -22,11 +23,13 @@ function App() {
       <Route path="/event/:id/purchase" element={<TicketPurchase />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route element={<PrivateRoute />}>
-          <Route path="/dashboard" element={<DashboardLayout />} />
-          
-      </Route>
+      
       <Route path="events" element={<DashboardPage />} />
+      <Route path="/search" element={<SearchResults />} />
+      <Route path="/event-details/:id" element={<EventDetails />} />
+      <Route path="/my-events" element={<MyEvents />} />
+
+
       
         
         
