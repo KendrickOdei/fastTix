@@ -126,7 +126,7 @@ export default function CreateEvents() {
     }
 
     try {
-      const token = localStorage.getItem('token'); // Assumes JWT from login
+      const token = localStorage.getItem('token'); 
       if (!token) {
         alert('Please log in to create an event');
         navigate('/login');
@@ -168,7 +168,7 @@ export default function CreateEvents() {
       }
 
       alert('Event created successfully!');
-      navigate('/'); // Redirect to My Events (to be built)
+      navigate('/'); 
     } catch (error: any) {
       alert(`Error: ${error.message}`);
     } finally {

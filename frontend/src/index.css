@@ -19,3 +19,10 @@
     }
   }
   
+  .Toastify__toast {
+    border-radius: 8px;
+    font-family: 'Arial', sans-serif;
+  }
+  .Toastify__toast--error {
+    background: #e74c3c;
+  }

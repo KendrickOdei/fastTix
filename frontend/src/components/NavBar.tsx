@@ -11,6 +11,16 @@ import {
 import { useEffect, useState ,useRef} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
+import { toast } from 'react-toastify';
+import { apiFetch } from '../utils/api'
+
+
+interface DecodedToken {
+  userId: string;
+  email: string;
+  role: 'user' | 'organizer';
+  [key: string]: any; 
+}
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,14 +66,18 @@ const Navbar = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      setIsAuthenticated(true);
       try {
-        const decoded: any = jwtDecode(token);
-        setUsername(decoded.username || decoded.name || 'User');
+        const decoded: DecodedToken = jwtDecode(token);
+        setIsAuthenticated(true);
+        setUsername(decoded.email || 'User'); 
         setRole(decoded.role || 'user');
       } catch (err) {
         console.error('Failed to decode token', err);
+        setIsAuthenticated(false);
+        localStorage.removeItem('token');
       }
+    } else {
+      setIsAuthenticated(false);
     }
   }, []);
 
@@ -71,18 +85,35 @@ const Navbar = () => {
 
 
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    navigate('/login');
-    window.location.reload();
+
+  const handleLogout = async () => {
+    try {
+      // Call the /logout endpoint to clear the refreshToken cookie
+      await apiFetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      // Clear localStorage
+      localStorage.removeItem('token');
+      // Update state
+      setIsAuthenticated(false);
+      setUsername('');
+      setRole('');
+      // Redirect to login
+      toast.success('Logged out successfully!')
+      navigate('/login');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error('Failed to log out. Please try again.');
+    }
   };
 
+  
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
 
 
-
+// this logic closes the menu when you click anywhere
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -200,7 +231,7 @@ const Navbar = () => {
              <FaSearch />
           </button>
           <Link to="/login" className="flex items-center space-x-2 hover:text-gray-300">
-            <FaUserCog className="w-5 h-5" />
+          {/* <FaUserCog className="w-5 h-5" /> */}
             <span>Sign In / Sign Up</span>
           </Link>
         </div>

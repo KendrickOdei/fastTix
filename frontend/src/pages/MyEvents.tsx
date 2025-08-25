@@ -24,8 +24,8 @@ const MyEvents = () => {
   useEffect(() => {
     const fetchMyEvents = async () => {
         try {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-          const res = await apiFetch<Event[]>(`${baseUrl}/api/events/mine`);
+          //const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          const res = await apiFetch<Event[]>('/api/events/mine');
           //const data = await res.json();
           setEvents(res);
         } catch (err) {

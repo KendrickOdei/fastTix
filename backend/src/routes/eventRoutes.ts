@@ -54,11 +54,11 @@ router.post("/create-event",
     body('ticketsAvailable').isInt({ min: 0 }).withMessage('Tickets available must be a positive integer'),
   ],
   
-  async (req: AuthRequest, res: Response): Promise<void> => { 
+  async (req: AuthRequest, res: Response): Promise<any> => { 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      res.status(400).json({ errors: errors.array() });
-      return
+      return res.status(400).json({ errors: errors.array() });
+      
     }
  
   const { name, description, date, time, venue, price, ticketsAvailable, category } = req.body;
@@ -123,6 +123,9 @@ router.post("/create-event",
   
 });
 
+
+//router to query events category
+
 router.get('/events', async (req: Request, res: Response) => {
   try {
     const {category} = req.query
@@ -137,13 +140,14 @@ router.get('/events', async (req: Request, res: Response) => {
 });
 
 
+//route to fetch events with it's id
 
-router.get('/events/:id', async (req: Request, res: Response) => {
+router.get('/events/:id', async (req: Request, res: Response): Promise<any>  => {
   try {
     const event = await Event.findById(req.params.id).populate('organizerId', 'organizationName');
     if (!event) {
-       res.status(404).json({ message: 'Event not found' });
-       return;
+      return res.status(404).json({ message: 'Event not found' });
+       ;
     }
     res.status(200).json(event);
   } catch (error) {
@@ -151,10 +155,10 @@ router.get('/events/:id', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
+//route to query all events created by an organizer
 router.get('/mine', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id; // make sure req.user is available from middleware
+    const userId = req.user?.id; 
 
     const events = await Event.find({ organizerId: userId }).sort({ createdAt: -1 });
 

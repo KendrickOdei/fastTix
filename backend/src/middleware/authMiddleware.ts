@@ -19,7 +19,7 @@ const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunctio
     const user = await User.findById(decoded.userId);
     if (!user || user.role !== 'organizer') {
        res.status(403).json({ message: 'Access denied: Organizers only' });
-       return
+       return;
     }
     req.user = user;
     next();

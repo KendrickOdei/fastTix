@@ -11,7 +11,7 @@ const router = express.Router();
 
 // Send email OTP
 router.post('/send-otp', async (req, res) => {
-  const email = req.body.email.trim().toLowerCase(); // sanitize + normalize
+  const email = req.body.email.trim().toLowerCase(); 
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
   const hash = crypto.createHash('sha256').update(otp).digest('hex');

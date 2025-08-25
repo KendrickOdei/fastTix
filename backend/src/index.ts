@@ -57,9 +57,8 @@ mongoose
 // Use routes
 app.get("/", (req, res) => {
   res.send("CORS enabled!");
-});
+})
 
-// Login Route (Example)
 
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
@@ -69,7 +68,7 @@ app.use("/api/", eventRoutes);
 app.use('/api/sendotp', sendOtpRoute);
 app.use('/api/verifyotp', verifyOtpRoute);
 app.use('/api', searchRoutes);
-app.use('/api/events', eventRoutes);
+//app.use('/api/events', eventRoutes);
 
 // Start server
 app.listen(PORT, () => {

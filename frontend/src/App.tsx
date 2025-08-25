@@ -11,11 +11,24 @@ import DashboardPage from './dashboard/pages/DashboardPage';
 import SearchResults from "./pages/SearchResults";
 import EventDetails from "./pages/EventDetails";
 import MyEvents from './pages/MyEvents'
+import { ToastContainer } from 'react-toastify';
 
 
 function App() {
   return (
     <div>
+      <ToastContainer
+        position="top-right" // Where toasts appear
+        autoClose={5000} // Close after 5 seconds
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light" // or "dark", "colored"
+        />
       <Navbar />
       <Routes>
       <Route path="/" element={<Hero />} />

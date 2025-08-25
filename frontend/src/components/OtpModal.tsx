@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
-type Props = {
+type Props  = {
   type: 'email' ;
-  contact: string;
+  address: string;
   onClose: () => void;
   onVerified: () => void;
 };
 
- function OtpModal({ type, contact, onClose, onVerified }: Props) {
+ function OtpModal({ type, address, onClose, onVerified }: Props) {
   const [otp, setOtp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -19,11 +19,11 @@ type Props = {
     setIsLoading(true);
     try {
       
-
-          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/sendotp/send-otp`, {
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+          const res = await fetch(`${baseUrl}/api/sendotp/send-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: contact}),
+            body: JSON.stringify({ email: address}),
           });
   
       const data = await res.json();
@@ -38,11 +38,11 @@ type Props = {
   const handleVerifyOtp = async () => {
     setIsVerifying(true);
     try {
-      
-          const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/verifyotp/verify-otp`, {
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+          const res = await fetch(`${baseUrl}/api/verifyotp/verify-otp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: contact, otp }),
+            body: JSON.stringify({ email: address, otp }),
           });
 
       const data = await res.json();
@@ -64,7 +64,7 @@ type Props = {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-80">
         <h2 className="text-lg font-semibold mb-4">Verify your {type}</h2>
-        <p className="text-sm text-gray-600 mb-4">{contact}</p>
+        <p className="text-sm text-gray-600 mb-4">{address}</p>
 
         <input
           type="text"

@@ -20,7 +20,7 @@ const EventDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const navigate = useNavigate();
   
-  const isAuthenticated = !!localStorage.getItem('token'); // basic check
+  const isAuthenticated = !!localStorage.getItem('token'); 
 
   useEffect(() => {
     const fetchEvent = async () => {

@@ -2,10 +2,34 @@
 import { Link,  } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../utils/api';
+import { toast } from 'react-toastify';
+import { jwtDecode } from "jwt-decode";
+
+interface DecodedToken{
+  userId: string;
+  email: string;
+  userName: string;
+  role: 'user' | 'organizer';
+
+}
+
+interface loginData {
+  email: string;
+  userName: string;
+  password: string;
+}
+
+const loginDataObj: loginData = {
+  email: '',
+  userName: '',
+  password: '',
+}
 
 export default function Login () {
 
-  const [email, setEmail] = useState('');
+  const [loginDetails, setLoginDetails] = useState<loginData>(loginDataObj);
+
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -14,45 +38,73 @@ export default function Login () {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/'); // Redirect to dashboard if logged in
-    } else {
-      setCheckingAuth(false)
-    }
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setCheckingAuth(false);
+        return;
+      }
+
+      try {
+        // Validate token using /validate-token
+        await apiFetch<{ userId: string; role: string }>('/api/auth/validate-token', {
+          method: 'GET',
+          credentials: 'include', 
+        });
+        navigate('/');
+      } catch (error) {
+        console.error('Token validation failed:', error);
+        localStorage.removeItem('token');
+        setCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
   }, [navigate]);
 
-  if (checkingAuth) return null
+  if (checkingAuth) return null;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
+    const  value = e.target.value;
+    setLoginDetails((prev)=> ({...prev,
+      email: value.includes('@')? value : '',
+      userName: !value.includes('@')? value : '',
+    
+    }))
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-        
-      const response = await fetch(`${baseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password: password.trim() }),
-      });
+      const response = await apiFetch<{ 
+        accessToken: string ;
+        refreshToken: string ;
+        message: string }>(
+        '/api/auth/login',
+        {
+          method: 'POST',
+          credentials: 'include', // Include cookies for refreshToken
+          body: JSON.stringify({ email: loginDetails.email.trim() ||  loginDetails.userName, password: password.trim() }),
+        }
+      );
+
+       localStorage.setItem('token', response.accessToken);
+      const decode: DecodedToken = jwtDecode(response.accessToken);
+      toast.success(`Welcome ${decode.userName}`);
+      navigate('/');
+      window.location.reload()
       
-      const data = await response.json();
-  
-      if (response.ok) {
-        localStorage.setItem('token', data.token); // Store JWT token
-        navigate('/');
-        window.location.reload(); // Optional: Force UI refresh
-      } else {
-        alert(data.message || 'Login failed');
-      }
-    } catch (error) {
-      alert('An error occurred. Please try again.');
+    } catch (error: any) {
+      toast.error(error.message || 'login failed')
       console.error(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   };
+
+ 
   
 
     return (
@@ -69,23 +121,25 @@ export default function Login () {
             <form className="space-y-6" onSubmit={handleLogin}>
               <div>
                 <label
-                  htmlFor="email"
+                  htmlFor="identifier"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Email address
+                  Email or Username
                 </label>
                 <div className="mt-2">
                   <input
-                    id="email"
-                    type="email"
+                    id="identifier"
+                    type="text"
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    value={email}
-                     onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email" required
+                    value={loginDetails.email || loginDetails.userName}
+                    onChange={handleChange}
+                     
+                    placeholder="Enter Email or Username"
+                    required
                   />
-                  
                 </div>
               </div>
+
   
               <div>
                 <div className="flex items-center justify-between">

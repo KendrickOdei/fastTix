@@ -3,6 +3,36 @@ import { Link } from 'react-router-dom';
 import SelectCountryList from 'react-select-country-list';
 import OtpModal from '../components/OtpModal';
 
+interface FormDataInterface{
+    email: string,
+    phone: string,
+    userType: string,
+    password: string,
+    confirmPassword: string,
+    firstName: string,
+    lastName: string,
+    userName: string,
+    organizationName?: string,
+    location?: string,
+    organizationType?: string,
+    country: string,
+
+}
+
+const FormDataObj: FormDataInterface = {
+  email: '',
+    phone: '',
+    userType: 'user',
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
+    userName: '',
+    organizationName: '',
+    location: '',
+    organizationType: '',
+    country: '',
+}
 export default function Register() {
   const [step, setStep] = useState(1);
   const [userType, setUserType] = useState<'user' | 'organizer'>('user');
@@ -10,19 +40,7 @@ export default function Register() {
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
 
-  const [formData, setFormData] = useState({
-    email: '',
-    phone: '',
-    userType: 'user',
-    password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    organizationName: '',
-    location: '',
-    organizationType: '',
-    country: '',
-  });
+  const [formData, setFormData] = useState<FormDataInterface>(FormDataObj);
 
   const [passwordStrength, setPasswordStrength] = useState('');
   const [errors, setErrors] = useState({
@@ -30,6 +48,7 @@ export default function Register() {
     phone: '',
     firstName: '',
     lastName: '',
+    userName: '',
     password: '',
     confirmPassword: '',
     organizationName: '',
@@ -86,6 +105,10 @@ export default function Register() {
         errorMessages.lastName = 'This field is required.';
         hasError = true;
       }
+      if(!formData.userName){
+        errorMessages.userName = 'This field is required'
+        hasError = true
+      }
       if (!formData.email) {
         errorMessages.email = 'This field is required.';
         hasError = true;
@@ -138,6 +161,7 @@ export default function Register() {
       const payload = {
         firstName: userType === 'user' ? formData.firstName : undefined,
         lastName: userType === 'user' ? formData.lastName: undefined,
+        userName: userType === 'user' ? formData.userName: undefined,
         email: formData.email ,
         password: formData.password,
         role: userType,
@@ -146,8 +170,8 @@ export default function Register() {
         country: formData.country,
         
       };
-
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
+       const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+      const res = await fetch(`${baseUrl}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -186,6 +210,7 @@ export default function Register() {
         confirmPassword: '',
         firstName: '',
         lastName: '',
+        userName: '',
         organizationName: '',
         location: '',
         organizationType: '',
@@ -333,6 +358,18 @@ export default function Register() {
                 {errors.lastName && (
                   <div className="text-red-500 text-xs mt-1">{errors.lastName}</div>
                 )}
+
+                <input
+                  type="text"
+                  name="userName"
+                  placeholder="username"
+                  onChange={handleChange}
+                  value={formData.userName}
+                  className={`input-style ${errors.userName ? 'border-red-500' : ''}`}
+                />
+                {errors.userName && (
+                  <div className="text-red-500 text-xs mt-1">{errors.userName}</div>
+                )}
                 <input
                   type="email"
                   name="email"
@@ -443,7 +480,7 @@ export default function Register() {
 
         {step === 2 && (
           <div className="space-y-6">
-            <h3 className="text-xl font-semibold text-center">Verify Contact Info</h3>
+            <h3 className="text-xl font-semibold text-center">Verify {formData.email} Info</h3>
 
             <div
               className="border p-4 rounded cursor-pointer flex justify-between items-center"
@@ -484,7 +521,7 @@ export default function Register() {
             {showEmailModal && (
               <OtpModal
                 type="email"
-                contact={formData.email}
+                address={formData.email}
                 onClose={() => setShowEmailModal(false)}
                 onVerified={() => {
                   setIsEmailVerified(true);
