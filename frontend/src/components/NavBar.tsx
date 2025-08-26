@@ -69,6 +69,7 @@ const Navbar = () => {
         const decoded: DecodedToken = jwtDecode(token);
         setIsAuthenticated(true);
         setUsername(decoded.email || 'User'); 
+        setRole(decoded.role);
         
       } catch (err) {
         console.error('Failed to decode token', err);
@@ -301,6 +302,7 @@ const Navbar = () => {
                         <FaListAlt className="mr-2" /> My Events
                       </Link>
                     </li>
+                    
                   </>
                 )}
 
@@ -312,12 +314,26 @@ const Navbar = () => {
                 </li>
 
                 <li>
-                  <button
+                  {isAuthenticated?(
+                    <div>
+                      
+
+                       <li
                     onClick={handleLogout}
                     className="flex items-center text-red-400 hover:text-red-300"
-                  >
+                      >
                     <FaPowerOff className="mr-2" /> Logout
-                  </button>
+                  </li>
+                    </div>
+                  ):(
+                    <div>
+                     <Link to='/login'className='flex items-center'>
+                          SignIn/SignUp
+                      </Link>
+                    </div>
+                    
+                  )}
+                  
                 </li>
               </ul>
             </div>
