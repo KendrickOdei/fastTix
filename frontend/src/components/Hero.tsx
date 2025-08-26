@@ -62,7 +62,9 @@ const Hero = () => {
       {/* events */}
 
       <main className="max-w-7xl mx-auto p-6">
-        {isLoading && <p className="text-center">Loading events...</p>}
+        {isLoading && <div className="flex justify-center items-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-green-500"></div>
+      </div>}
         {error && <p className="text-center text-red-500">{error}</p>}
         {!isLoading && !error && events.length === 0 && (
           <p className="text-center">No events available. Check back soon!</p>
@@ -85,7 +87,7 @@ const Hero = () => {
                 </div>
               )}
               <h2 className="text-xl font-bold text-green-900">{event.name}</h2>
-              <p className="mt-2 text-gray-600">{event.description}</p>
+               <p className="mt-2 text-gray-600">{event.description}</p>
               <p className="mt-2 text-sm text-gray-500">
                 <strong>Date:</strong> {new Date(event.date).toLocaleDateString()}
               </p>

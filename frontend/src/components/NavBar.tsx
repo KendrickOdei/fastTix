@@ -2,7 +2,6 @@ import {
   FaTicketAlt,
   FaHome,
   FaPlusCircle,
-  FaUserCog,
   FaPowerOff,
   FaListAlt,
   FaSearch,
@@ -70,7 +69,7 @@ const Navbar = () => {
         const decoded: DecodedToken = jwtDecode(token);
         setIsAuthenticated(true);
         setUsername(decoded.email || 'User'); 
-        setRole(decoded.role || 'user');
+        
       } catch (err) {
         console.error('Failed to decode token', err);
         setIsAuthenticated(false);
@@ -270,8 +269,19 @@ const Navbar = () => {
 
           {/* Mobile Dropdown */}
           {isMenuOpen && (
-            <div  className="absolute right-0 mt-3 w-64 bg-gray-800 text-white p-5 rounded-md shadow-lg z-50">
-              <div className="text-lg mb-4">Welcome, {username}</div>
+            <div  className="absolute right-[-20px] mt-0 mr-0 top-[-20px] w-80 bg-green-800 text-white font-bold p-5 rounded-md shadow-lg z-50">
+              <div className='flex gap-4'>
+                 <div className="text-lg mb-4">Welcome, {username}</div>
+                 {/* close button */}
+
+                <div className='text-bold ' onClick={()=> setIsMenuOpen(false)}>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+
+                </div>
+              </div>
+             {/* continuatin of mobile menu list */}
               <ul className="space-y-4">
                 <li>
                   <Link to="/" className="flex items-center" onClick={toggleMenu}>
@@ -294,17 +304,6 @@ const Navbar = () => {
                   </>
                 )}
 
-                <li>
-                  <Link to="/dashboard/events" className="flex items-center" onClick={toggleMenu}>
-                    <FaTicketAlt className="mr-2" /> All Events
-                  </Link>
-                </li>
-
-                <li>
-                  <Link to="/dashboard/profile" className="flex items-center" onClick={toggleMenu}>
-                    <FaUserCog className="mr-2" /> Profile
-                  </Link>
-                </li>
 
                 <li>
                   <Link to="/dashboard/profile" className="flex items-center" onClick={toggleMenu}>

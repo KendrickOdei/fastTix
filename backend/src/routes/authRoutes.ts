@@ -143,9 +143,9 @@ router.post(
         accessToken,
         refreshToken,
       });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Server error' });
+    } catch (error: any) {
+      console.error("login error: ", error.message || error);
+      return res.status(500).json({ message: 'Server error', error: error.message });
     }
   }
 );

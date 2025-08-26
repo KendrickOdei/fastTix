@@ -28,7 +28,7 @@ const loginDataObj: loginData = {
 
 export default function Login () {
 
-  const [loginDetails, setLoginDetails] = useState<loginData>(loginDataObj);
+  const [loginDetails, setLoginDetails] = useState(loginDataObj);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,7 +92,7 @@ export default function Login () {
 
        localStorage.setItem('token', response.accessToken);
       const decode: DecodedToken = jwtDecode(response.accessToken);
-      toast.success(`Welcome ${decode.userName}`);
+      toast.success(`Welcome ${decode.userName || decode.email}`);
       navigate('/');
       window.location.reload()
       
