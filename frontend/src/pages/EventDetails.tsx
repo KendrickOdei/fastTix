@@ -47,7 +47,9 @@ const EventDetails = () => {
     }
   };
 
-  if (loading) return <div className="text-center mt-10 text-xl">Loading...</div>;
+  if (loading) return <div className="flex justify-center items-center h-96">
+    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-r-2 border-l-2 border-green-500"></div>
+  </div>;
 
   if (!event) return <div className="text-center mt-10 text-xl">Event not found.</div>;
 

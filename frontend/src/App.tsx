@@ -12,6 +12,7 @@ import SearchResults from "./pages/SearchResults";
 import EventDetails from "./pages/EventDetails";
 import MyEvents from './pages/MyEvents'
 import { ToastContainer } from 'react-toastify';
+import EditEvent from "./pages/EditEvent";
 
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
       <Route path="/search" element={<SearchResults />} />
       <Route path="/event-details/:id" element={<EventDetails />} />
       <Route path="/my-events" element={<MyEvents />} />
+      <Route path="/edit-event/:id" element={<EditEvent />} />
 
 
       

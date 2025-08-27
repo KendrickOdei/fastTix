@@ -140,7 +140,7 @@ router.get('/events', async (req: Request, res: Response) => {
 });
 
 
-//route to fetch events with it's id
+//route to fetch event details before booking
 
 router.get('/events/:id', async (req: Request, res: Response): Promise<any>  => {
   try {
@@ -168,5 +168,34 @@ router.get('/mine', authMiddleware, async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+router.put("/events/edit-event/:id", async (req: Request, res: Response): Promise<any> => {
+  try {
+    //  Find event by ID
+    const event = await Event.findById(req.params.id).populate(
+      "organizerId",
+      "organizationName"
+    );
+
+    // If event does not exist
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    // Update event with data from request body
+    Object.assign(event, req.body);
+
+    //  Save updated event
+    const updatedEvent = await event.save();
+
+    //  Send back updated event
+    res.status(200).json(updatedEvent);
+
+  } catch (error) {
+    console.error("Error updating event:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
 
 export default router;

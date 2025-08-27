@@ -63,7 +63,7 @@ const Hero = () => {
 
       <main className="max-w-7xl mx-auto p-6">
         {isLoading && <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-green-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-r-2 border-l-2 border-green-500"></div>
       </div>}
         {error && <p className="text-center text-red-500">{error}</p>}
         {!isLoading && !error && events.length === 0 && (

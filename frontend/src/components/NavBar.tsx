@@ -198,9 +198,7 @@ const Navbar = () => {
 
             
 
-            <Link to="/dashboard/profile" className="hover:text-gray-300 flex items-center">
-              <FaTicketAlt className="mr-2" /> My Tickets
-            </Link>
+            
 
             
 
@@ -320,7 +318,7 @@ const Navbar = () => {
 
                        <li
                     onClick={handleLogout}
-                    className="flex items-center text-red-400 hover:text-red-300"
+                    className="flex items-center "
                       >
                     <FaPowerOff className="mr-2" /> Logout
                   </li>
