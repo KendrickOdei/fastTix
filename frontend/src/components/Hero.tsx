@@ -104,7 +104,7 @@ const Hero = () => {
                 <strong>Tickets Available:</strong> {event.ticketsAvailable}
               </p>
               <p className="mt-1 text-sm text-gray-500">
-                <strong>Organizer:</strong> {event.organizerId.organizationName || 'Unknown'}
+                <strong>Organizer:</strong> {event.organizerId?.organizationName || 'Unknown'}
               </p>
               <Link
                 to={`/event-details/${event._id}`}
