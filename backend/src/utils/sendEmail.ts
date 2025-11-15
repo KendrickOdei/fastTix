@@ -13,13 +13,17 @@ export const sendOtpEmail = async (email: string, otp: string) => {
       });
 
   const mailOptions = {
-    from: '"My App" <odekendrick@gmail.com>',
+    from: process.env.SMTP_USER,
     to: email,
     subject: 'Your OTP Code',
     text: `Your OTP code is ${otp}`,
+    
   };
   
 
 
   await transporter.sendMail(mailOptions);
+transporter.verify((err,success)=>{
+    console.log(err || success)
+})
 };
