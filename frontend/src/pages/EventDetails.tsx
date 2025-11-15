@@ -26,7 +26,7 @@ const EventDetails = () => {
     const fetchEvent = async () => {
       try {
         const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-        const res = await fetch(`${baseUrl}/api/events/${id}`);
+        const res = await fetch(`${baseUrl}/api/events/events/${id}`);
         const data = await res.json();
         setEvent(data);
       } catch (err) {

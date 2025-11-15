@@ -11,7 +11,7 @@ import { useEffect, useState ,useRef} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { toast } from 'react-toastify';
-import { apiFetch } from '../utils/api'
+import { apiFetch } from '../utils/apiClient'
 
 
 interface DecodedToken {
@@ -63,7 +63,7 @@ const Navbar = () => {
 
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('accessToken');
     if (token) {
       try {
         const decoded: DecodedToken = jwtDecode(token);

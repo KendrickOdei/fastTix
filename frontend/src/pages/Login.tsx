@@ -1,111 +1,38 @@
 
 import { Link,  } from "react-router-dom";
-import { useState, useEffect } from 'react';
+import { useState,  } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiFetch } from '../utils/api';
 import { toast } from 'react-toastify';
-import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../Context/AuthContext";
 
-interface DecodedToken{
-  userId: string;
-  email: string;
-  userName: string;
-  role: 'user' | 'organizer';
 
-}
-
-interface loginData {
-  email: string;
-  userName: string;
-  password: string;
-}
-
-const loginDataObj: loginData = {
-  email: '',
-  userName: '',
-  password: '',
-}
 
 export default function Login () {
 
-  const [loginDetails, setLoginDetails] = useState(loginDataObj);
+  const [identifier, setIdentifier] = useState('')
 
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  const [loadingLocal, setLoadingLocal] = useState(false);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setCheckingAuth(false);
-        return;
-      }
+  const { login} = useAuth()
 
-      try {
-        // Validate token using /validate-token
-        await apiFetch<{ userId: string; role: string }>('/api/auth/validate-token', {
-          method: 'GET',
-          credentials: 'include', 
-        });
-        navigate('/');
-      } catch (error) {
-        console.error('Token validation failed:', error);
-        localStorage.removeItem('token');
-        setCheckingAuth(false);
-      }
-    };
-
-    checkAuth();
-  }, [navigate]);
-
-  if (checkingAuth) return null;
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>{
-    const  value = e.target.value;
-    setLoginDetails((prev)=> ({...prev,
-      email: value.includes('@')? value : '',
-      userName: !value.includes('@')? value : '',
-    
-    }))
-  }
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleLogin = async(e: React.FormEvent) => {
+    e.preventDefault()
+    setLoadingLocal(true)
 
     try {
-      const response = await apiFetch<{ 
-        accessToken: string ;
-        refreshToken: string ;
-        message: string }>(
-        '/api/auth/login',
-        {
-          method: 'POST',
-          credentials: 'include', // Include cookies for refreshToken
-          body: JSON.stringify({ email: loginDetails.email.trim() ||  loginDetails.userName, password: password.trim() }),
-        }
-      );
-
-       localStorage.setItem('token', response.accessToken);
-      const decode: DecodedToken = jwtDecode(response.accessToken);
-      toast.success(`Welcome ${decode.userName || decode.email}`);
-      navigate('/');
-      window.location.reload()
-      
+      await login(identifier.trim(),password.trim())
+      navigate('/')
     } catch (error: any) {
-      toast.error(error.message || 'login failed')
-      console.error(error);
-    } finally {
-      setLoading(false);
+      console.error(error)
+      toast.error('Login failed')
+    } finally{
+      setLoadingLocal(false)
     }
-  };
-
- 
-  
+  }
 
     return (
         <>
@@ -131,8 +58,8 @@ export default function Login () {
                     id="identifier"
                     type="text"
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                    value={loginDetails.email || loginDetails.userName}
-                    onChange={handleChange}
+                    value={identifier}
+                    onChange={(e)=> setIdentifier(e.target.value)}
                      
                     placeholder="Enter Email or Username"
                     required
@@ -171,11 +98,11 @@ export default function Login () {
               <div>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loadingLocal}
                   className={`flex w-full justify-center rounded-md px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm
-                    ${loading ? 'bg-blue-600' : 'bg-green-900 hover:bg-green-700'} 
+                    ${loadingLocal ? 'bg-blue-600' : 'bg-green-900 hover:bg-green-700'} 
                     focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-green-600`}>
-                  {loading ? 'Signing in...' : 'Sign in'}
+                  {loadingLocal ? 'Signing in...' : 'Sign in'}
                 </button>
               </div>
             </form>

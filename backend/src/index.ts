@@ -8,6 +8,7 @@ import sendOtpRoute from "./routes/sendOtpRoutes"
 import verifyOtpRoute from "./routes/verifyOtpRoutes"
 import path from 'path';
 import searchRoutes from './routes/searchRoutes';
+import { errorHandler } from './middleware/errorHandler';
 
 
 
@@ -68,7 +69,11 @@ app.use("/api/", eventRoutes);
 app.use('/api/sendotp', sendOtpRoute);
 app.use('/api/verifyotp', verifyOtpRoute);
 app.use('/api', searchRoutes);
-//app.use('/api/events', eventRoutes);
+
+
+app.use(errorHandler)
+
+
 
 // Start server
 app.listen(PORT, () => {

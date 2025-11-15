@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/user';
+import { AppError } from '../utils/AppError';
+import { isJtiAllowed } from '../utils/accessToken';
 
 export interface AuthRequest extends Request {
   user?: IUser;
@@ -15,12 +17,19 @@ const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunctio
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { userId: string };
-    const user = await User.findById(decoded.userId);
-    if (!user || user.role !== 'organizer') {
-       res.status(403).json({ message: 'Access denied: Organizers only' });
-       return;
-    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any
+
+    const jwtId = decoded.jwtId
+    if(!jwtId) throw new AppError('invalid token (missing jti)', 401)
+
+      //check redis to ensure token is valid
+    
+    const userIdInRedis = await isJtiAllowed(jwtId)
+    if(!userIdInRedis) throw new AppError('Token revoked or expired', 401)
+
+    const user = await User.findById(decoded.id)
+    if(!user) throw new AppError('User not foiund', 404)
+   
     req.user = user;
     next();
   } catch (error) {

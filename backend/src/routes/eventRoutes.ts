@@ -1,11 +1,18 @@
 import express, {Response, Request} from "express";
-import Event from "../models/event"; 
 import authMiddleware from "../middleware/authMiddleware";  // Import AuthRequest
-import { body, validationResult } from 'express-validator';
 import { IUser } from "../models/user";
-import multer , { FileFilterCallback } from 'multer';
-import path from "path";
-import {v2 as cloudinary} from "cloudinary"
+import { uploads } from "../middleware/uploads";
+import { createEvent } from "../controllers/createEvent";
+import { allEvents } from "../controllers/allEvents";
+import { myEvents } from "../controllers/myEvents";
+import { eventDetails } from "../controllers/eventDetails";
+import { editEvent } from "../controllers/editEvent";
+import { deleteEvent } from "../controllers/deleteEvent";
+
+import { getAllTickets } from "../controllers/getAllTickets";
+import { getSingleTicket } from "../controllers/getSingleTicket";
+import { rateLimiterByRole } from "../middleware/rateLimiterByRole";
+import { authorized } from "../middleware/authRole";
 import dotenv from 'dotenv'
 
 interface AuthRequest extends Request {
@@ -13,189 +20,39 @@ interface AuthRequest extends Request {
 }
 dotenv.config();
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
-const storage = multer.memoryStorage();
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const ext = file.mimetype.split('/')[1].toLowerCase();
-    if (['jpg', 'jpeg', 'png'].includes(ext)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only .jpg, .jpeg, .png files are allowed'));
-    }
-  },
-  
-});
 const router = express.Router();
 
 // Create a new event (protected)
-router.post("/create-event",
-  upload.fields([
+router.post('/create-event',uploads.fields([
     { name: 'image', maxCount: 1 },
     { name: 'promoImages', maxCount: 5 },
   ]),
-  authMiddleware,
-  [
-    body('name').notEmpty().withMessage('Event name is required'),
-    body('description').notEmpty().withMessage('Description is required'),
-    body('date').isISO8601().toDate().withMessage('Valid date is required (e.g., 2025-05-30)'),
-    body('time').notEmpty().withMessage('Time is required (e.g., 7:00 PM)'),
-    body('venue').notEmpty().withMessage('Venue is required'),
-    body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
-    body('category').notEmpty().withMessage('Category is required'),
-    body('ticketsAvailable').isInt({ min: 0 }).withMessage('Tickets available must be a positive integer'),
-  ],
-  
-  async (req: AuthRequest, res: Response): Promise<any> => { 
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-      
-    }
- 
-  const { name, description, date, time, venue, price, ticketsAvailable, category } = req.body;
-  const files = (req.files ?? {}) as { [fieldname: string]: Express.Multer.File[] };
- 
-
-  try {
-
-    if (!req.user) {
-      res.status(401).json({ message: 'User not authenticated' });
-      return;
-    }
-    const streamUpload = (fileBuffer: Buffer, folder: string): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          }
-        );
-        stream.end(fileBuffer);
-      });
-    };
-    
-
-    let imageUrl: string | undefined;
-    if (files['image'] && files['image'][0]) {
-      const result = await streamUpload(files['image'][0].buffer, 'fasttix/events');
-      imageUrl = result.secure_url;
-    }
-    
-    let promoImageUrls: string[] = [];
-    if (files['promoImages'] && files['promoImages'].length > 0) {
-      for (const file of files['promoImages']) {
-        const result = await streamUpload(file.buffer, 'fasttix/promo');
-        promoImageUrls.push(result.secure_url);
-      }
-    }
-    
-    const newEvent = new Event({
-        name,
-        description,
-        date,
-        time,
-        venue,
-        price,
-        ticketsAvailable,
-        organizerId: req.user._id,// Gets user ID from token
-        image: imageUrl,
-        category,
-        promoImages: promoImageUrls,
-      
-    });
-
-    await newEvent.save();
-    res.status(201).json(newEvent);
-  } catch (error: any) {
-    console.error("CREATE EVENT ERROR:", error); 
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-  
-});
+  authMiddleware,rateLimiterByRole,authorized('organizer'),createEvent)
 
 
 //router to query events category
 
-router.get('/events', async (req: Request, res: Response) => {
-  try {
-    const {category} = req.query
-
-    const filter = category ? {category} : {}
-    const events = await Event.find(filter).populate('organizerId', 'organizationName').sort({createdAt: -1});
-    res.status(200).json(events);
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
+router.get('/events', allEvents)
 
 //route to fetch event details before booking
 
-router.get('/events/:id', async (req: Request, res: Response): Promise<any>  => {
-  try {
-    const event = await Event.findById(req.params.id).populate('organizerId', 'organizationName');
-    if (!event) {
-      return res.status(404).json({ message: 'Event not found' });
-       ;
-    }
-    res.status(200).json(event);
-  } catch (error) {
-    console.error('Error fetching event:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+router.get('/events/:id', rateLimiterByRole,eventDetails)
+
+
 //route to query all events created by an organizer
-router.get('/mine', authMiddleware, async (req: AuthRequest, res: Response) => {
-  try {
-    const userId = req.user?.id; 
+router.get('/mine',authMiddleware, authorized('organizer') ,rateLimiterByRole,myEvents)
 
-    const events = await Event.find({ organizerId: userId }).sort({ createdAt: -1 });
+router.put('/edit-event/:id',authMiddleware,authorized('organizer'), rateLimiterByRole,editEvent)
 
-    res.status(200).json(events);
-  } catch (error) {
-    console.error('Error fetching organizer events:', error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
+router.delete('/delete/:id',authMiddleware,authorized('organizer'),rateLimiterByRole,deleteEvent)
 
-router.put("/events/edit-event/:id", async (req: Request, res: Response): Promise<any> => {
-  try {
-    //  Find event by ID
-    const event = await Event.findById(req.params.id).populate(
-      "organizerId",
-      "organizationName"
-    );
+//get all tickets created
+router.post('/:eventId/tickets',authMiddleware,authorized('organizer'),rateLimiterByRole,getAllTickets)
 
-    // If event does not exist
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" });
-    }
+router.get('/:eventId/tickets/:ticketId',authMiddleware,authorized('organizer'),rateLimiterByRole,getSingleTicket)
 
-    // Update event with data from request body
-    Object.assign(event, req.body);
-
-    //  Save updated event
-    const updatedEvent = await event.save();
-
-    //  Send back updated event
-    res.status(200).json(updatedEvent);
-
-  } catch (error) {
-    console.error("Error updating event:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-});
 
 
 export default router;

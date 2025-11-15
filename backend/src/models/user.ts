@@ -3,12 +3,11 @@ import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
-  firstName?: string;
-  lastName?: string;
+  fullName?: string;
   userName?: string;
   email: string;
   password: string;
-  role: 'user' | 'organizer';
+  role: 'user' | 'organizer' | 'admin';
   organizationName?: string;
   organizationLocation?: string;
   phone?: number;
@@ -18,12 +17,14 @@ export interface IUser extends Document {
 }
 
 const userSchema: Schema<IUser> = new Schema({
-  firstName: { type: String, required: false },
-  lastName: { type: String, required: false },
-  userName: { type: String, required: false, unique: true, trim: true },
+
+  fullName: { type: String, required: false },
+  userName: { type: String, trim: true, unique: true, required:
+    function(){ return this.role === 'user'}
+  },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['user', 'organizer'], default: 'user' },
+  role: { type: String, enum: ['user', 'organizer', 'admin'], default: 'user' },
   organizationName: { type: String },
   organizationLocation: { type: String },
   phone: { type: Number },

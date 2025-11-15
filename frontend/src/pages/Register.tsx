@@ -9,8 +9,7 @@ interface FormDataInterface{
     userType: string,
     password: string,
     confirmPassword: string,
-    firstName: string,
-    lastName: string,
+    fullName: string,
     userName: string,
     organizationName?: string,
     location?: string,
@@ -25,8 +24,7 @@ const FormDataObj: FormDataInterface = {
     userType: 'user',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
+    fullName: '',
     userName: '',
     organizationName: '',
     location: '',
@@ -46,8 +44,7 @@ export default function Register() {
   const [errors, setErrors] = useState({
     email: '',
     phone: '',
-    firstName: '',
-    lastName: '',
+    fullName: '',
     userName: '',
     password: '',
     confirmPassword: '',
@@ -97,12 +94,8 @@ export default function Register() {
     let errorMessages = { ...errors };
 
     if (userType === 'user') {
-      if (!formData.firstName) {
-        errorMessages.firstName = 'This field is required.';
-        hasError = true;
-      }
-      if (!formData.lastName) {
-        errorMessages.lastName = 'This field is required.';
+      if (!formData.fullName) {
+        errorMessages.fullName = 'This field is required.';
         hasError = true;
       }
       if(!formData.userName){
@@ -159,15 +152,14 @@ export default function Register() {
     try {
       // Create user with isVerified: false
       const payload = {
-        firstName: userType === 'user' ? formData.firstName : undefined,
-        lastName: userType === 'user' ? formData.lastName: undefined,
+        fullName: userType === 'user' ? formData.fullName : undefined,
         userName: userType === 'user' ? formData.userName: undefined,
         email: formData.email ,
         password: formData.password,
         role: userType,
         organizationName: userType === 'organizer' ? formData.organizationName : undefined,
         organizationLocation: userType === 'organizer' ? formData.location : undefined,
-        country: formData.country,
+        country: formData.country
         
       };
        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
@@ -208,8 +200,7 @@ export default function Register() {
         userType: 'user',
         password: '',
         confirmPassword: '',
-        firstName: '',
-        lastName: '',
+        fullName: '',
         userName: '',
         organizationName: '',
         location: '',
@@ -338,26 +329,16 @@ export default function Register() {
               <>
                 <input
                   type="text"
-                  name="firstName"
-                  placeholder="First Name"
+                  name="fullName"
+                  placeholder="Full Name"
                   onChange={handleChange}
-                  value={formData.firstName}
-                  className={`input-style ${errors.firstName ? 'border-red-500' : ''}`}
+                  value={formData.fullName}
+                  className={`input-style ${errors.fullName ? 'border-red-500' : ''}`}
                 />
-                {errors.firstName && (
-                  <div className="text-red-500 text-xs mt-1">{errors.firstName}</div>
+                {errors.fullName && (
+                  <div className="text-red-500 text-xs mt-1">{errors.fullName}</div>
                 )}
-                <input
-                  type="text"
-                  name="lastName"
-                  placeholder="Last Name"
-                  onChange={handleChange}
-                  value={formData.lastName}
-                  className={`input-style ${errors.lastName ? 'border-red-500' : ''}`}
-                />
-                {errors.lastName && (
-                  <div className="text-red-500 text-xs mt-1">{errors.lastName}</div>
-                )}
+                
 
                 <input
                   type="text"

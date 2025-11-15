@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { apiFetch } from '../utils/api';
+import { apiFetch } from '../utils/apiClient';
 
 interface Event {
   _id: string;

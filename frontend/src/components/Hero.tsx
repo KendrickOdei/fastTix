@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+
 interface Event {
   _id: string;
   name: string;
@@ -15,24 +16,41 @@ interface Event {
   promoImages?: string[];
 }
 
+interface paginatedData {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  results: Event[]
+}
+
 
 const Hero = () => {
   const [events, setEvents] = useState<Event[]>([]);
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchEvents = async () => {
+
+   const limit = 10
+   const fetchEvents = async (page: number) => {
+
+    setIsLoading(true)
+        setError('')
       try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-        const response = await fetch(`${baseUrl}/api/events/events`);
         
-        if (!response.ok) {
-          throw new Error('Failed to fetch events');
-        }
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const response = await fetch(`${baseUrl}/api/events/events?page=${page}&limit=${limit}`);
+        
+        if(!response)throw new Error('Failed to fetch events')
+        const data: paginatedData = await response.json()
+
+        
   
-        const data = await response.json();
-        setEvents(data);
+        setEvents(data.results);
+        setPage(data.page)
+        setTotalPages(data.totalPages)
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -40,10 +58,20 @@ const Hero = () => {
       }
     };
   
-    fetchEvents();
-  }, []);
+    
+
+  useEffect(() => {
+    console.log('fetching events', page)
+   fetchEvents(page);
+  }, [page]);
   
+  const handlePrev = () => {
+    setPage((prev) => prev - 1)
+  }
   
+  const handleNext = () => {
+    setPage((prev) => prev + 1)
+  }
     return (
         <>
         <div className="relative w-full h-screen bg-cover bg-center flex items-center justify-center" style={{ backgroundImage: "url('/hero-bg.jpg')" }}>
@@ -115,7 +143,45 @@ const Hero = () => {
             </div>
           ))}
         </div>
+
+              {/* pagiantion control */}
+      <div
+      className='flex justify-center items-center gap-4 mt-10'
+      >
+        {/* previous Button */}
+        {page > 1 && (
+          <button
+          onClick={handlePrev}
+          // disabled= {page === 1}
+          className='px-4 py-2 bg-green-700 text-white rounded hover:bg-gray-600'
+          >
+            previous
+
+          </button>
+        )}
+
+        <span className='text-gray-700 font-semibold'>
+          Page {page} of {totalPages}
+        </span>
+
+        {/* next button */}
+
+        {page < totalPages && (
+          <button
+          onClick={handleNext}
+          disabled = {page === totalPages}
+          className='px-4 py-2 bg-green-700 text-white rounded hover:bg-green-600'
+          >
+            Next
+          </button>
+        )}
+
+      </div>
       </main>
+
+
+
+      
       
 
         </>
