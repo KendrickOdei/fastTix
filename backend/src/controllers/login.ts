@@ -4,7 +4,7 @@ import { loginSchema } from '../schemas/schema'
 import { AppError } from '../utils/AppError'
 import User from '../models/user'
 import bcrypt from 'bcryptjs'
-import  jwt  from 'jsonwebtoken'
+
 
 import { signAccessToken,allowListJti } from '../utils/accessToken'
 import { signRefreshToken,allowListRefreshJwtId } from '../utils/refreshToken'

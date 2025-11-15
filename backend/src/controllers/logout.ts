@@ -1,7 +1,7 @@
 import { Request,Response } from "express";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
-import { revokeRefreshJwtId,revokeAllRefreshSessions } from "../utils/refreshToken";
+import { revokeRefreshJwtId, } from "../utils/refreshToken";
 import jwt from 'jsonwebtoken'
 
 export const logout= asyncHandler(async(req:Request, res:Response)=>{

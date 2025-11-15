@@ -1,7 +1,4 @@
 import express, { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/user';
-import { body, validationResult,  } from 'express-validator';
 import authMiddleware from '../middleware/authMiddleware'
 
 import  { IUser } from '../models/user';
