@@ -11,7 +11,7 @@ import { deleteEvent } from "../controllers/deleteEvent";
 
 import { getAllTickets } from "../controllers/getAllTickets";
 import { getSingleTicket } from "../controllers/getSingleTicket";
-import { rateLimiterByRole } from "../middleware/rateLimiterByRole";
+
 import { authorized } from "../middleware/authRole";
 import dotenv from 'dotenv'
 
@@ -29,7 +29,7 @@ router.post('/create-event',uploads.fields([
     { name: 'image', maxCount: 1 },
     { name: 'promoImages', maxCount: 5 },
   ]),
-  authMiddleware,rateLimiterByRole,authorized('organizer'),createEvent)
+  authMiddleware,authorized('organizer'),createEvent)
 
 
 //router to query events category
