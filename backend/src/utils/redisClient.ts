@@ -11,6 +11,7 @@ if (isProd && !process.env.REDIS_URL) {
   redisClient = {
     get: async () => null,
     set: async () => {},
+     setEx: async () => {},
     del: async () => {},
   };
 } else {
