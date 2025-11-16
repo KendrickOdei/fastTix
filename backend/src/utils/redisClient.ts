@@ -1,19 +1,33 @@
 import { createClient } from "redis";
 
-const redisClient = createClient({
-    url:'redis://127.0.0.1:6379'
-})
+const isProd = process.env.NODE_ENV === "production";
 
-redisClient.on('connect', ()=>{
-    console.log('Redis connected successfully')
-})
+// Default dummy client for production if no Redis URL
+let redisClient: any;
 
-redisClient.on('error', (err)=>{
-    console.error('redis error', err)
-});
+if (isProd && !process.env.REDIS_URL) {
+  console.log(" Redis disabled in production");
+  // Dummy methods to avoid breaking code
+  redisClient = {
+    get: async () => null,
+    set: async () => {},
+    del: async () => {},
+  };
+} else {
+  const redisUrl = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+  redisClient = createClient({ url: redisUrl });
 
-(async ()=>{
-    await redisClient.connect()
-})();
+  redisClient.on("connect", () => {
+    console.log(" Redis connected successfully");
+  });
+
+  redisClient.on("error", (err: string) => {
+    console.error("Redis error:", err);
+  });
+
+  (async () => {
+    await redisClient.connect();
+  })();
+}
 
 export default redisClient;
