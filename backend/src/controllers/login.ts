@@ -4,10 +4,7 @@ import { loginSchema } from '../schemas/schema'
 import { AppError } from '../utils/AppError'
 import User from '../models/user'
 import bcrypt from 'bcryptjs'
-
-
-import { signAccessToken,allowListJti } from '../utils/accessToken'
-import { signRefreshToken,allowListRefreshJwtId } from '../utils/refreshToken'
+import jwt from 'jsonwebtoken'
 
 
 
@@ -35,23 +32,19 @@ export const login = asyncHandler(async(req:Request,res:Response,next:NextFuncti
   const isMatch = await bcrypt.compare(password,user.password)
     if(!isMatch) throw new AppError('invalid credentials', 400)
 
+    const payLoad = {
+      userId: user._id,
+      email: user.email,
+      userName: user.userName,
+      role: user.role
 
-    // create token with jti
-    const payload = {id:
-      user._id.toString(), role: user.role, email: user.email,
-      userName: user.userName
     }
-    
-    const { token: accessToken, jwtId: accessJwtId, expiresIn} = signAccessToken(payload)
 
-    // allowlist the jti in redis
-    await allowListJti(accessJwtId, user._id.toString(), expiresIn)
+    // access token
 
-    //Refresh token
-
-    const { token: refreshToken, jwtId: refreshJwtId} = signRefreshToken(user.id);
-
-    await allowListRefreshJwtId(refreshJwtId,user.id)
+    const accessToken = jwt.sign(payLoad,process.env.JWT_SECRET as string, {expiresIn: '1h'})
+    const refreshToken = jwt.sign({userId: user._id}, process.env.JWT_REFRESH_SECRET as string, {expiresIn: '7d'})
+ 
 
     //send token to client
     res.status(200).json({
@@ -59,6 +52,6 @@ export const login = asyncHandler(async(req:Request,res:Response,next:NextFuncti
       refreshToken,
       user: {id: user.id, email: user.email},
       message: 'Login successfull',
-       expiresIn})
+})
 
 })

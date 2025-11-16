@@ -2,7 +2,7 @@ import {Request,Response,NextFunction} from 'express'
 import { AppError } from '../utils/AppError'
 import Event from '../models/event'
 import { asyncHandler } from '../utils/asyncHandler'
-import { clearEventCache } from '../utils/clearEventCache'
+
 
 
 export const editEvent = asyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
@@ -17,7 +17,6 @@ export const editEvent = asyncHandler(async(req:Request,res:Response,next:NextFu
 
     if(!updatedEvent) throw new AppError('Event not found', 404)
 
-    await clearEventCache(updatedEvent.category)
 
     res.status(200).json({
         success: true,

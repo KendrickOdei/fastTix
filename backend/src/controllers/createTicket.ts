@@ -4,7 +4,7 @@ import Ticket from "../models/ticket";
 import { AppError } from "../utils/AppError";
 import Event from "../models/event";
 import { ticketSchema } from "../schemas/schema";
-import { clearEventCache } from "../utils/clearEventCache";
+
 
 
 export const createTicket = asyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
@@ -31,7 +31,7 @@ export const createTicket = asyncHandler(async(req:Request,res:Response,next:Nex
 
     if(!newTicket) throw new AppError('Error creating ticket', 400)
 
-    await clearEventCache(event.category);
+    
 
     res.status(200).json({
     success: true,

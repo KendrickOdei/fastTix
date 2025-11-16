@@ -22,9 +22,9 @@ router.get('/test', rateLimiter(5,60), (req,res)=>{
   res.json({message: 'You are within the limit'})
 })
 
-router.post('/register',rateLimiterByRole, register)
+router.post('/register', register)
 
-router.post('/login',rateLimiterByRole,login)
+router.post('/login',login)
 
 
 router.post('/refresh-token', refresh)

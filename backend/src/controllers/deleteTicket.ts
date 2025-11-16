@@ -3,7 +3,7 @@ import Ticket from '../models/ticket'
 import Event from '../models/event'
 import { asyncHandler } from '../utils/asyncHandler'
 import { AppError } from '../utils/AppError'
-import redisClient from '../utils/redisClient'
+
 
 
 export const deleteTicket = asyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
@@ -27,7 +27,7 @@ export const deleteTicket = asyncHandler(async(req:Request,res:Response,next:Nex
 
     const deletedTicket = await Ticket.findByIdAndDelete(ticketId)
 
-    await redisClient.del(`tickets:${eventId}`)
+    
 
     res.status(200).json({
         success: true,
