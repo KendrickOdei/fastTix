@@ -15,7 +15,7 @@ export function signAccessToken(payLoad: object, options?: {expiresIn: number}){
 
     const expiresIn = options?.expiresIn ?? ACCESS_EXPIRES_IN
 
-    //INCLUDE Jwt Id
+    
 
     const token = jwt.sign({...payLoad, jwtId}, JWT_SECRET, {expiresIn})
 
