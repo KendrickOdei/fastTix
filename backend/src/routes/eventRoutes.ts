@@ -38,20 +38,20 @@ router.get('/events', allEvents)
 
 //route to fetch event details before booking
 
-router.get('/events/:id', rateLimiterByRole,eventDetails)
+router.get('/events/:id',eventDetails)
 
 
 //route to query all events created by an organizer
-router.get('/mine',authMiddleware, authorized('organizer') ,rateLimiterByRole,myEvents)
+router.get('/mine',authMiddleware, authorized('organizer') ,myEvents)
 
-router.put('/edit-event/:id',authMiddleware,authorized('organizer'), rateLimiterByRole,editEvent)
+router.put('/edit-event/:id',authMiddleware,authorized('organizer'),editEvent)
 
-router.delete('/delete/:id',authMiddleware,authorized('organizer'),rateLimiterByRole,deleteEvent)
+router.delete('/delete/:id',authMiddleware,authorized('organizer'),deleteEvent)
 
 //get all tickets created
-router.post('/:eventId/tickets',authMiddleware,authorized('organizer'),rateLimiterByRole,getAllTickets)
+router.post('/:eventId/tickets',authMiddleware,authorized('organizer'),getAllTickets)
 
-router.get('/:eventId/tickets/:ticketId',authMiddleware,authorized('organizer'),rateLimiterByRole,getSingleTicket)
+router.get('/:eventId/tickets/:ticketId',authMiddleware,authorized('organizer'),getSingleTicket)
 
 
 
