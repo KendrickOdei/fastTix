@@ -11,7 +11,8 @@
     "strict": true,
     "allowJs": true,
     "typeRoots": ["./types", "./node_modules/@types"],
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "outDir": "./dist"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules","eslint.config.js"]
