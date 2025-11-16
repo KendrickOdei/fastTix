@@ -52,9 +52,10 @@ export const allEvents = asyncHandler(async(req:Request,res:Response,next:NextFu
 
     }
 
-    
+    if (redisClient && redisClient.setEx) {
+  await redisClient.setEx(cachedKey, 3600, JSON.stringify(responseBody));
+}
 
-    await redisClient.setEx(cachedKey,60,JSON.stringify(responseBody))
     
     
     res.status(200).json(responseBody)
