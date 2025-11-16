@@ -1,30 +1,37 @@
 import {z} from 'zod';
 
 export const registerSchema = z.object({
-    fullName: z.string().min(7,'first name must be seven or more'),
-    userName: z.string().min(3, 'username must be three or more characters').optional(),
-    email: z.email('enter valid email address'),
-    role: z.enum(['user', 'organizer']),
-    password: z.string().min(6,'Password must be at least 6 characters').regex(/[0-9]/, 'password must conatin at least one number').regex(/[A-Z]/,'password must contain at least one upper case letter'),
-    country: z.string('country is required'),
-    organizationName: z.string().optional(),
-    organizationLocation: z.string().optional(),
-    isVerified: z.boolean().default(false)
-}).superRefine((data, ctx)=>{
-    if(data.role === 'organizer'){
-        if(!data.organizationName){
-            ctx.addIssue({path: 
-            ['organizationName'], message: 'organizationName is required for organizers',
-            code:'custom'})
-        }
-        if(!data.organizationLocation){
-            ctx.addIssue({path:
-                ['organizationLocation'], message:
-                'organization location is required for organizers', code:'custom' })
-        }
+  fullName: z.string().min(7, 'first name must be seven or more'),
+  userName: z.string().min(3, 'username must be three or more characters').optional(),
+  email: z.email('enter valid email address'),
+  role: z.enum(['user', 'organizer']),
+  password: z.string()
+    .min(6, 'Password must be at least 6 characters')
+    .regex(/[0-9]/, 'password must contain at least one number')
+    .regex(/[A-Z]/, 'password must contain at least one upper case letter'),
+  country: z.string().min(1, 'country is required'),
+  organizationName: z.string().optional(),
+  organizationLocation: z.string().optional(),
+  isVerified: z.boolean().default(false)
+}).superRefine((data, ctx) => {
+  if (data.role === 'organizer') {
+    if (!data.organizationName) {
+      ctx.addIssue({
+        path: ['organizationName'],
+        message: 'organizationName is required for organizers',
+        code: 'custom'
+      });
     }
-    
-})
+    if (!data.organizationLocation) {
+      ctx.addIssue({
+        path: ['organizationLocation'],
+        message: 'organization location is required for organizers',
+        code: 'custom'
+      });
+    }
+  }
+});
+
 
 
 export const loginSchema = z.object({
