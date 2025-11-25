@@ -6,7 +6,11 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 import {v2 as cloudinary} from "cloudinary"
 import dotenv from 'dotenv'
-import { clearEventCache } from '../utils/clearEventCache'
+import { IUser } from "../models/user";
+
+interface AuthRequest extends Request {
+  user?: IUser; // Match index.d.ts
+}
 
 
 dotenv.config();
@@ -19,11 +23,16 @@ cloudinary.config({
 
 
 
-export const createEvent = asyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
+export const createEvent = asyncHandler(async(req:AuthRequest,res:Response,next:NextFunction)=>{
     const results = eventSchema.safeParse(req.body)
-    if(!results.success) throw new AppError('invalid data', 400)
+    if(!results.success){
+      console.log('Zod errors:', results.error.format())
+      throw new AppError('invalid data', 400)
+    } 
     
-    const {title, description, date, time, venue, price, category} = results.data
+    const {title, description, date, time, venue, price, category, ticketsAvailable} = results.data
+
+    const organizerId = req.user?.id
 
     const files = (req.files ?? {}) as { [fieldname: string]: Express.Multer.File[] };
 
@@ -55,11 +64,11 @@ export const createEvent = asyncHandler(async(req:Request,res:Response,next:Next
     venue,
     price,
     category,
-    image: imageUrl
+    ticketsAvailable,
+    image: imageUrl,
+    organizerId
 })
 if(!newEvent) throw new AppError('error creating event', 404)
-
-await clearEventCache(newEvent.category)
 
  await newEvent.save()
  res.status(200).json({

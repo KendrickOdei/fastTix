@@ -4,9 +4,10 @@ import authMiddleware from '../middleware/authMiddleware'
 import  { IUser } from '../models/user';
 import { register } from '../controllers/register';
 import { login } from '../controllers/login';
-import { rateLimiter } from '../middleware/rateLimiter';
+// import { rateLimiter } from '../middleware/rateLimiter';
 
-import { rateLimiterByRole } from '../middleware/rateLimiterByRole';
+import { validateRegistration} from '../middleware/validateRegistration';
+import { handleValidation } from '../middleware/handleValidation';
 
 import { refresh } from '../controllers/refreshToken';
 import { logout } from '../controllers/logout';
@@ -18,11 +19,8 @@ export interface AuthRequest extends Request {
 
 const router = express.Router();
 
-router.get('/test', rateLimiter(5,60), (req,res)=>{
-  res.json({message: 'You are within the limit'})
-})
 
-router.post('/register', register)
+router.post('/register',validateRegistration,handleValidation, register)
 
 router.post('/login',login)
 

@@ -9,7 +9,8 @@ export interface IUser extends Document {
   password: string;
   role: 'user' | 'organizer' | 'admin';
   organizationName?: string;
-  organizationLocation?: string;
+  location?: string;
+  country?: string;
   phone?: number;
   isVerified: boolean;
   isPhoneVerified: boolean;
@@ -26,7 +27,8 @@ const userSchema: Schema<IUser> = new Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'organizer', 'admin'], default: 'user' },
   organizationName: { type: String },
-  organizationLocation: { type: String },
+  location: { type: String, required: function(){return this.role === 'organizer'} },
+  country: {type: String, required: true},
   phone: { type: Number },
   isVerified: { type: Boolean, default: false },
   isPhoneVerified: { type: Boolean, default: false },

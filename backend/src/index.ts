@@ -9,10 +9,8 @@ import verifyOtpRoute from "./routes/verifyOtpRoutes"
 import path from 'path';
 import searchRoutes from './routes/searchRoutes';
 import { errorHandler } from './middleware/errorHandler';
-
-
-
-
+import cookieParser from 'cookie-parser';
+import dashboardRoutes from './routes/dashboard.route'
 
 
 
@@ -24,13 +22,9 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));
+app.use(cookieParser())
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// app.use(cors({
-  
-//     origin: ['https://fast-tix-sigma.vercel.app'], //process.env.FRONTEND_URL,
-//     credentials: true
-// }));
 
 
 const allowedOrigins = [
@@ -76,6 +70,7 @@ app.use("/api/", eventRoutes);
 app.use('/api/sendotp', sendOtpRoute);
 app.use('/api/verifyotp', verifyOtpRoute);
 app.use('/api', searchRoutes);
+app.use("/api/organizer", dashboardRoutes)
 
 
 app.use(errorHandler)

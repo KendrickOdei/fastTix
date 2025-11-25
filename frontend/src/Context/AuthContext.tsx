@@ -1,21 +1,31 @@
 import React, {createContext, useContext, useState, useEffect, } from 'react'
 import { apiFetch } from '../utils/apiClient'
 import { toast } from 'react-toastify'
-import { jwtDecode } from 'jwt-decode'
+//import { jwtDecode } from 'jwt-decode'
 import { useNavigate } from 'react-router-dom'
 
-interface DecodedToken {
-    userId: string;
-    email: string;
-    userName: string;
-    role:'user' | 'organizer'
+declare global {
+  interface Window {
+    authRefreshToken: () => Promise<boolean>;
+    authLogout: () => void;
+  }
 }
+
+
+// interface DecodedToken {
+//     userId: string;
+//     email: string;
+//     userName: string;
+//     organizationName: string;
+//     role:'user' | 'organizer'
+// }
 
 
 interface User {
     id: string;
     email: string;
     userName: string;
+    organizationName: string;
     role: 'user' | 'organizer'
 }
 
@@ -50,9 +60,8 @@ React.FC<{children: React.ReactNode}> = ({children}) => {
         try {
             const response = await apiFetch<{
                 accessToken: string;
-                refreshToken: string;
                 user: {id: string; email: string; 
-                userName: string; role: 'user' | 'organizer'}
+                userName: string; organizationName: string; role: 'user' | 'organizer'}
             }>('/api/auth/login', {
                 method: 'Post',
                 credentials: 'include',
@@ -61,17 +70,22 @@ React.FC<{children: React.ReactNode}> = ({children}) => {
                 })
             }) 
 
-            const decoded: DecodedToken = jwtDecode(response.accessToken)
+            
 
             //save tokens and user
             localStorage.setItem('accessToken', response.accessToken)
-            localStorage.setItem('refreshToken', response.refreshToken)
 
             localStorage.setItem('user',JSON.stringify(response.user))
 
             setUser(response.user)
 
-            toast.success(`Welcome ${decoded.userName}`)
+         if (response.user.role === 'user') {
+                toast.success(`Welcome ${response.user.userName}`)
+            } else {
+                toast.success(`Welcome ${response.user.organizationName || response.user.userName}`)
+            }
+
+
         } catch (error: any) {
             toast.error(error.message || 'Login failed')
             throw error;
@@ -80,23 +94,33 @@ React.FC<{children: React.ReactNode}> = ({children}) => {
         }
         
     }
-    const navigate = useNavigate()
-    const logout = () => {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        localStorage.removeItem('user')
 
-        setUser(null)
-        navigate('/login')
+
+    const navigate = useNavigate()
+    const logout = async () => {
+        try {
+            const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+            await fetch(`${baseUrl}/api/auth/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+
+            localStorage.removeItem('accessToken')
+            localStorage.removeItem('user')
+
+            setUser(null)
+            navigate('/login')
+        } catch (error) {
+            console.error('Logout failed', error)
+        }
+        
+
+        
     };
 
     const refreshToken = async () => {
         try {
-            const storedRefresh = 
-            localStorage.getItem('refreshToken');
-            if(!storedRefresh){
-                throw new Error('No refresh token')
-            }
+           
 
              const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
             const response = await fetch(`${baseUrl}/api/auth/refresh-token`,{
@@ -105,7 +129,7 @@ React.FC<{children: React.ReactNode}> = ({children}) => {
                     'application/json'
                 },
                 credentials: 'include',
-                body: JSON.stringify({refreshToken: storedRefresh})
+               
             })
 
             if(!response.ok) throw new Error('Failed to refresh token')
@@ -117,6 +141,19 @@ React.FC<{children: React.ReactNode}> = ({children}) => {
             logout()
         }
     }
+
+    useEffect(() => {
+        window.authRefreshToken = async () => {
+            try {
+            await refreshToken();
+            return true;
+            } catch {
+            return false;
+            }
+        };
+
+        window.authLogout = () => logout();
+        }, [refreshToken, logout]);
 
     return (
         <AuthContext.Provider value={{user, login, logout, loading, refreshToken}}>

@@ -1,36 +1,54 @@
 import {z} from 'zod';
 
 export const registerSchema = z.object({
-  fullName: z.string().min(7, 'first name must be seven or more'),
-  userName: z.string().min(3, 'username must be three or more characters').optional(),
-  email: z.email('enter valid email address'),
+  fullName: z.string().optional(),
+  userName: z.string().optional(),
+  email: z.email('Enter valid email address'),
   role: z.enum(['user', 'organizer']),
   password: z.string()
     .min(6, 'Password must be at least 6 characters')
-    .regex(/[0-9]/, 'password must contain at least one number')
-    .regex(/[A-Z]/, 'password must contain at least one upper case letter'),
-  country: z.string().min(1, 'country is required'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter'),
+  country: z.string('Country is required'),
   organizationName: z.string().optional(),
-  organizationLocation: z.string().optional(),
-  isVerified: z.boolean().default(false)
+  location: z.string().optional(),
+  isVerified: z.boolean().default(false),
 }).superRefine((data, ctx) => {
+  if (data.role === 'user') {
+    if (!data.fullName) {
+      ctx.addIssue({
+        path: ['fullName'],
+        message: 'Full name is required for users',
+        code: 'custom',
+      });
+    }
+    if (!data.userName) {
+      ctx.addIssue({
+        path: ['userName'],
+        message: 'Username is required for users',
+        code: 'custom',
+      });
+    }
+  }
+
   if (data.role === 'organizer') {
     if (!data.organizationName) {
       ctx.addIssue({
         path: ['organizationName'],
-        message: 'organizationName is required for organizers',
-        code: 'custom'
+        message: 'Organization name is required for organizers',
+        code: 'custom',
       });
     }
-    if (!data.organizationLocation) {
+    if (!data.location) {
       ctx.addIssue({
-        path: ['organizationLocation'],
-        message: 'organization location is required for organizers',
-        code: 'custom'
+        path: ['location'],
+        message: 'Location is required for organizers',
+        code: 'custom',
       });
     }
   }
 });
+
 
 
 
@@ -45,15 +63,14 @@ export const loginSchema = z.object({
 
 
 export const eventSchema = z.object({
-    title: z.string(),
-    description: z.string().min(20,'description must be twenty or more characters'),
-     date: z.date(), 
-     time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/,{
-        message: 'Invalid time format'
-     }),
-    venue: z.string(),
-     price: z.number(),
-     category: z.string()
+  title: z.string().min(1, 'Title is required').trim(),
+  description: z.string().min(1, 'Description is required').trim(),
+  date: z.string().min(1, 'Date is required'),
+  time: z.string().min(1, 'Time is required'),
+  venue: z.string().min(1, 'Venue is required').trim(),
+  category: z.string().min(1, 'Category is required'),
+  price: z.coerce.number().min(0, 'Price must be ≥ 0'),
+  ticketsAvailable: z.coerce.number().min(1, 'At least 1 ticket required'),
 })
 
 export const ticketSchema = z.object({

@@ -1,12 +1,14 @@
 // frontend/src/pages/CreateEvent.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 
 export default function CreateEvents() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    title: '',
     description: '',
     date: '',
     time: '',
@@ -19,7 +21,7 @@ export default function CreateEvents() {
   
   });
   const [errors, setErrors] = useState({
-    name: '',
+    title: '',
     description: '',
     date: '',
     time: '',
@@ -55,20 +57,13 @@ export default function CreateEvents() {
     }
   };
 
-  const handlePromoImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      setFormData((prev) => ({ ...prev, promoImages: Array.from(files).slice(0, 5) }));
-      setErrors((prev) => ({ ...prev, promoImages: '' }));
-    }
-  };
 
   const validateFields = () => {
     let hasError = false;
     const newErrors = { ...errors };
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Event name is required';
+    if (!formData.title.trim()) {
+      newErrors.title = 'Event title is required';
       hasError = true;
     }
     if (!formData.description.trim()) {
@@ -126,19 +121,20 @@ export default function CreateEvents() {
     }
 
     try {
-      const token = localStorage.getItem('token'); 
+      const token = localStorage.getItem('accessToken'); 
+      console.log('Access token beign sent:', token)
       if (!token) {
-        alert('Please log in to create an event');
+        toast.error('No token found. Please login again')
         navigate('/login');
         return;
       }
 
       const form = new FormData();
-          form.append('name', formData.name);
-          form.append('description', formData.description);
-          form.append('date', formData.date);
-          form.append('time', formData.time);
-          form.append('venue', formData.venue);
+          form.append('title', formData.title.trim());
+          form.append('description', formData.description.trim());
+          form.append('date', formData.date.trim());
+          form.append('time', formData.time.trim());
+          form.append('venue', formData.venue.trim());
           form.append('price', formData.price);
           form.append('category', formData.category);
           form.append('ticketsAvailable', formData.ticketsAvailable);
@@ -150,7 +146,8 @@ export default function CreateEvents() {
           formData.promoImages.forEach((file) => {
             form.append('promoImages', file); 
           });
-          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+
+          const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
           const response = await fetch(`${baseUrl}/api/events/create-event`, {
             method: 'POST',
@@ -164,10 +161,12 @@ export default function CreateEvents() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to create event');
+        toast.error(result.message || 'Failed to create event')
+      }else{
+        toast.success('Event created successfully')
       }
 
-      alert('Event created successfully!');
+     
       navigate('/'); 
     } catch (error: any) {
       alert(`Error: ${error.message}`);
@@ -192,29 +191,18 @@ export default function CreateEvents() {
             />
             {errors.image && <p className="text-red-500 text-xs mt-1">{errors.image}</p>}
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Promo Images (up to 5)</label>
-            <input
-              type="file"
-              name="promoImages"
-              accept=".jpg,.jpeg,.png"
-              multiple
-              onChange={handlePromoImagesChange}
-              className={`w-full border rounded px-3 py-2 ${errors.promoImages ? 'border-red-500' : ''}`}
-            />
-            {errors.promoImages && <p className="text-red-500 text-xs mt-1">{errors.promoImages}</p>}
-          </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-700">Event Name</label>
             <input
               type="text"
-              name="name"
-              value={formData.name}
+              name="title"
+              value={formData.title}
               onChange={handleChange}
-              className={`w-full border rounded px-3 py-2 ${errors.name ? 'border-red-500' : ''}`}
+              className={`w-full border rounded px-3 py-2 ${errors.title ? 'border-red-500' : ''}`}
               placeholder="e.g., Summer Rock Fest"
             />
-            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
           </div>
 
           <div>

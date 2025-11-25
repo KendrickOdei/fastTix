@@ -14,6 +14,7 @@ import { getSingleTicket } from "../controllers/getSingleTicket";
 
 import { authorized } from "../middleware/authRole";
 import dotenv from 'dotenv'
+import { createTicket } from "../controllers/createTicket";
 
 interface AuthRequest extends Request {
   user?: IUser; // Match index.d.ts
@@ -48,9 +49,13 @@ router.put('/edit-event/:id',authMiddleware,authorized('organizer'),editEvent)
 
 router.delete('/delete/:id',authMiddleware,authorized('organizer'),deleteEvent)
 
-//get all tickets created
-router.post('/:eventId/tickets',authMiddleware,authorized('organizer'),getAllTickets)
 
+router.get('/:eventId/tickets',authMiddleware,authorized('organizer'),getAllTickets)
+
+//create multiple tickets for an event
+router.post('/:eventId/tickets',authMiddleware,authorized('organizer'),createTicket)
+
+// get single ticket
 router.get('/:eventId/tickets/:ticketId',authMiddleware,authorized('organizer'),getSingleTicket)
 
 

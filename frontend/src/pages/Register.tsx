@@ -50,6 +50,7 @@ export default function Register() {
     confirmPassword: '',
     organizationName: '',
     location: '',
+    organizationType: '',
     country: '',
   });
 
@@ -151,6 +152,7 @@ export default function Register() {
 
     try {
       // Create user with isVerified: false
+      
       const payload = {
         fullName: userType === 'user' ? formData.fullName : undefined,
         userName: userType === 'user' ? formData.userName: undefined,
@@ -158,7 +160,7 @@ export default function Register() {
         password: formData.password,
         role: userType,
         organizationName: userType === 'organizer' ? formData.organizationName : undefined,
-        organizationLocation: userType === 'organizer' ? formData.location : undefined,
+        location: userType === 'organizer' ? formData.location : undefined,
         country: formData.country
         
       };

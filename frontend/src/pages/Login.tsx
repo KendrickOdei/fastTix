@@ -1,8 +1,8 @@
 
 import { Link,  } from "react-router-dom";
-import { useState,  } from 'react';
+import { useEffect, useState,  } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+
 import { useAuth } from "../Context/AuthContext";
 
 
@@ -17,7 +17,17 @@ export default function Login () {
 
   const navigate = useNavigate();
 
-  const { login} = useAuth()
+  const {user, login} = useAuth()
+
+  const isAuthenticated = !!user
+
+  useEffect(()=> {
+    if(isAuthenticated){
+      const redirectTo = localStorage.getItem('redirectAfterLogin') || '/organizer'
+      localStorage.removeItem('redirectAfterLogin')
+      navigate(redirectTo, {replace: true})
+    }
+  },[isAuthenticated, navigate])
 
   const handleLogin = async(e: React.FormEvent) => {
     e.preventDefault()
@@ -25,10 +35,10 @@ export default function Login () {
 
     try {
       await login(identifier.trim(),password.trim())
-      navigate('/')
+      
     } catch (error: any) {
       console.error(error)
-      toast.error('Login failed')
+      
     } finally{
       setLoadingLocal(false)
     }
@@ -37,6 +47,11 @@ export default function Login () {
     return (
         <>
         <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+          {localStorage.getItem('redirectAfterLogin') &&(
+            <div className="p-4 bg-blue-100 text-green-800 rounded mb-4">
+                Your session expired. Log in to continue where you left off.
+            </div>
+          )}
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
             
             <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">

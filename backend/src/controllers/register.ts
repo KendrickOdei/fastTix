@@ -1,29 +1,27 @@
 import {Request, Response, NextFunction} from 'express';
 import { AppError } from '../utils/AppError';
 import { asyncHandler } from '../utils/asyncHandler';
-import { registerSchema } from '../schemas/schema';
+//import { registerSchema } from '../schemas/schema';
 import User from '../models/user';
 
 
 export const register = asyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
-    const results = registerSchema.safeParse(req.body);
-    if(!results.success) throw new AppError('invalid data', 400);
-
-    const {fullName,userName, email,password,role,country,organizationName,organizationLocation, isVerified}= results.data
+    
+    const {fullName,userName, email,password,role,country,organizationName,location, isVerified}= req.body
 
     const userExists = await User.findOne({email: email.toString().toLowerCase()})
 
     if(userExists) throw new AppError('user already exists', 400)
 
     const newUser = new User({
-        fullName: role === 'user'? fullName : undefined,
-        userName: role === 'user' ? userName: undefined, 
-        email,
+        ...(role === 'user' && {fullName}),
+        ...(role === 'user' && {userName}), 
+        email: email.toLowerCase(),
         password,
         role,
         country,
-        organizationName: role ==='organizer' ? organizationName : undefined,
-        organizationLocation: role ==='organizer' ? organizationLocation : undefined,
+        ...( role ==='organizer' && {organizationName }),
+        ...(role ==='organizer' && {location }),
         isVerified: false
 
     })

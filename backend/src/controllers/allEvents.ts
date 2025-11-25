@@ -2,7 +2,7 @@ import {Request,Response,NextFunction} from 'express'
 import Event from '../models/event'
 import { asyncHandler } from '../utils/asyncHandler'
 import { AppError } from '../utils/AppError'
-import redisClient from '../utils/redisClient'
+
 
 export const allEvents = asyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
 
@@ -13,13 +13,6 @@ export const allEvents = asyncHandler(async(req:Request,res:Response,next:NextFu
     const search = req.query.search || ""
 
 
-    const cachedKey = `allEvents:page=${page}:limit=${limit}:category=${category}:search=${search}`
-
-    const cachedEvents = await redisClient.get(cachedKey)
-    if(cachedEvents){
-        console.log('returning cached events')
-        return res.status(200).json(JSON.parse(cachedEvents))
-    }
 
     const filterEvent: any =  {}
 
@@ -51,12 +44,5 @@ export const allEvents = asyncHandler(async(req:Request,res:Response,next:NextFu
         results: events
 
     }
-
-    if (redisClient && redisClient.setEx) {
-  await redisClient.setEx(cachedKey, 3600, JSON.stringify(responseBody));
-}
-
-    
-    
     res.status(200).json(responseBody)
 })

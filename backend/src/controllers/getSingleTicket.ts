@@ -3,9 +3,14 @@ import { asyncHandler } from "../utils/asyncHandler";
 import Ticket from "../models/ticket";
 import Event from "../models/event";
 import { AppError } from "../utils/AppError";
+import { IUser } from "../models/user";
+
+interface AuthRequest extends Request {
+  user?: IUser; // Match index.d.ts
+}
 
 
-export const getSingleTicket = asyncHandler(async(req:Request,res:Response,next:NextFunction)=>{
+export const getSingleTicket = asyncHandler(async(req:AuthRequest,res:Response,next:NextFunction)=>{
     const {eventId,ticketId} = req.params;
 
     const event = await Event.findById(eventId)

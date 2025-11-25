@@ -4,28 +4,35 @@ import { AppError } from "../utils/AppError";
 //import { isRefreshJwtAllowed } from "../utils/refreshToken";
 //import { signAccessToken, allowListJti } from "../utils/accessToken";
 import jwt from 'jsonwebtoken'
+import { RefreshToken } from "../models/refreshToken";
+import bcrypt from 'bcryptjs'
 
 
 //renew access tken when old one expires
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
-  const { refreshToken } = req.body;
+  const  rawToken = req.cookies.refreshToken;
 
-  if (!refreshToken) throw new AppError("No refresh token", 400);
+  if (!rawToken) throw new AppError("No refresh token", 400);
 
-  // Verify token
-  const decoded = jwt.verify(
-    refreshToken,
-    process.env.JWT_REFRESH_SECRET!
-  ) as any;
+  // find token in database
+  const tokenDb = await RefreshToken.findOne({expiresAt: {$gt:
+    new Date()
+  }})
 
-  // Issue new access token
-  const newAccessToken = jwt.sign(
-    {
-      userId: decoded.userId,
-    },
-    process.env.JWT_SECRET!,
-    { expiresIn: '1h' }
-  );
+  if(!tokenDb) throw new AppError('Refresh token invalid', 401);
 
-  res.json({ accessToken: newAccessToken });
+const isMatch = await bcrypt.compare(rawToken, tokenDb.token);
+if(!isMatch) throw new AppError('Refresh token invalid', 401);
+  //issue new access token
+
+  const accessToken = jwt.sign(
+    {userId: tokenDb.userId},
+    process.env.JWT_SECRET! as string,
+    {expiresIn: '1h'}
+  )
+
+  res.json({ 
+    accessToken
+    
+ });
 });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { apiFetch } from '../utils/apiClient';
+import { apiFetch } from '../../utils/apiClient';
 
 interface Event {
   _id: string;
@@ -70,12 +70,27 @@ const MyEvents = () => {
                 <p className=" mb-4 text-gray-500">
                 <strong>Price:</strong> ${event.price.toFixed(2)}
                 </p>
-                <Link
-                  to={`/edit-event/${event._id}`}
-                  className="block bg-blue-600 text-white py-2 text-center rounded hover:bg-blue-700"
-                >
-                  Edit Event
-                </Link>
+                <div className='flex px-2 gap-2'>
+                  <Link
+                    to={`/edit-event/${event._id}`}
+                    className="block bg-blue-600 text-white py-2 px-2 text-center rounded hover:bg-blue-700"
+                  >
+                    Edit Event
+                  </Link>
+
+                  <Link to={`/organizer/create-ticket/${event._id}`} 
+                  className="block bg-blue-600 text-white py-2 px-2 text-center rounded hover:bg-blue-700"
+                  >
+                    Create Tickets
+                  </Link>
+
+                   <Link to={`/organizer/events/${event._id}/tickets`} 
+                  className="block bg-blue-600 text-white py-2 px-2 text-center rounded hover:bg-blue-700"
+                  >
+                    View Tickets
+                  </Link>
+                </div>
+
               </div>
             </div>
           ))}

@@ -1,31 +1,23 @@
 import {
-  FaTicketAlt,
   FaHome,
   FaPlusCircle,
   FaPowerOff,
-  FaListAlt,
   FaSearch,
   FaTimes
 } from 'react-icons/fa';
 import { useEffect, useState ,useRef} from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode';
+
 import { toast } from 'react-toastify';
-import { apiFetch } from '../utils/apiClient'
+import { useAuth } from '../Context/AuthContext';
 
 
-interface DecodedToken {
-  userId: string;
-  email: string;
-  role: 'user' | 'organizer';
-  [key: string]: any; 
-}
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState('');
-  const [role, setRole] = useState('');
+  const {user, logout} = useAuth();
+  const isAuthenticated = !!user
+  const role = user?.role;
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState("")
@@ -60,51 +52,13 @@ const Navbar = () => {
 
 
 
-
-
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      try {
-        const decoded: DecodedToken = jwtDecode(token);
-        setIsAuthenticated(true);
-        setUsername(decoded.email || 'User'); 
-        setRole(decoded.role);
-        
-      } catch (err) {
-        console.error('Failed to decode token', err);
-        setIsAuthenticated(false);
-        localStorage.removeItem('token');
-      }
-    } else {
-      setIsAuthenticated(false);
-    }
-  }, []);
-
-
-
-
-
-
   const handleLogout = async () => {
     try {
-      // Call the /logout endpoint to clear the refreshToken cookie
-      await apiFetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      // Clear localStorage
-      localStorage.removeItem('token');
-      // Update state
-      setIsAuthenticated(false);
-      setUsername('');
-      setRole('');
-      // Redirect to login
-      toast.success('Logged out successfully!')
-      navigate('/login');
+      await logout();
+      toast.success('Logged out successfully')
+      navigate('/login')
     } catch (error: any) {
-      console.error('Logout error:', error);
-      toast.error('Failed to log out. Please try again.');
+      toast.error('Failed to log out.');
     }
   };
 
@@ -182,33 +136,17 @@ const Navbar = () => {
 
             {role === 'organizer' && (
               <>
-                <Link to="/create-event" className="hover:text-gray-300 flex items-center">
-                  <FaPlusCircle className="mr-2" /> Create Event
+                <Link to="organizer/dashboard" className="hover:text-gray-300 flex items-center">
+                  <FaPlusCircle className="mr-2" /> Dashboard
                 </Link>
 
-                <Link to="/my-events" className="hover:text-gray-300 flex items-center">
-                  <FaListAlt className="mr-2" /> My Events
-                </Link>
+                
               </>
             )}
 
-            <Link to="/dashboard/events" className="hover:text-gray-300 flex items-center">
-              <FaTicketAlt className="mr-2" /> All Events
-            </Link>
-
-            
-
-            
-
-            
-
-            
-          </div>
+           </div>
           
-
-
-          
-        {isAuthenticated ?(
+           {isAuthenticated ?(
           <div className='hidden md:flex text-white font-semibold gap-6'>
             <button onClick={() => setShowSearch(true)} className="text-xl hover:text-gray-300">
              <FaSearch />
@@ -229,7 +167,7 @@ const Navbar = () => {
              <FaSearch />
           </button>
           <Link to="/login" className="flex items-center space-x-2 hover:text-gray-300">
-          {/* <FaUserCog className="w-5 h-5" /> */}
+         
             <span>Sign In / Sign Up</span>
           </Link>
         </div>
@@ -245,97 +183,74 @@ const Navbar = () => {
         <button onClick={() => setShowSearch(true)} className="text-white text-xl md:text-2xl ml-4 focus:outline-none">
           <FaSearch />
         </button>
-        <div onClick={toggleMenu}>
-
-        <svg xmlns="http://www.w3.org/2000/svg"
-         viewBox="0 0 24 24" fill="currentColor"
-          className="size-8 text-white font-bold">
-        <path fillRule="evenodd" 
-        d="M3 6.75A.75.75 0 0 1 3.75 6h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 6.75ZM3 12a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 12Zm8.25 5.25a.75.75 0 0 1 .75-.75h8.25a.75.75 0 0 1 0 1.5H12a.75.75 0 0 1-.75-.75Z" clipRule="evenodd" />
-        </svg>
-
-        </div>
-
-       
-
-          {/* <img
-            src={profileImage}
-            alt="Profile"
-            className="w-10 h-10 rounded-full object-cover border cursor-pointer"
-            
-          /> */}
+            <button onClick={toggleMenu} className="text-white">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                stroke="currentColor"
+                className="w-9 h-9"
+              >
+                <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+            </button>
           
 
-          {/* Mobile Dropdown */}
-          {isMenuOpen && (
-            <div  className="absolute right-[-20px] mt-0 mr-0 top-[-20px] w-80 bg-green-800 text-white font-bold p-5 rounded-md shadow-lg z-50">
-              <div className='flex gap-4'>
-                 <div className="text-lg mb-4">Welcome, {username}</div>
-                 {/* close button */}
+          
+            {/* Mobile Dropdown */}
+            {isMenuOpen && (
+              <div className="absolute right-[-20px] mt-13 w-80 bg-green-800 text-white p-3 shadow-2xl z-50 border border-green-700">
+                
 
-                <div className='text-bold ' onClick={()=> setIsMenuOpen(false)}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="size-8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-
-                </div>
-              </div>
-             {/* continuatin of mobile menu list */}
-              <ul className="space-y-4">
-                <li>
-                  <Link to="/" className="flex items-center" onClick={toggleMenu}>
-                    <FaHome className="mr-2" /> Home
-                  </Link>
-                </li>
-
-                {role === 'organizer' && (
-                  <>
-                    <li>
-                      <Link to="/create-event" className="flex items-center" onClick={toggleMenu}>
-                        <FaPlusCircle className="mr-2" /> Create Event
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/my-events" className="flex items-center" onClick={toggleMenu}>
-                        <FaListAlt className="mr-2" /> My Events
-                      </Link>
-                    </li>
-                    
-                  </>
-                )}
-
-
-                <li>
-                  <Link to="/dashboard/profile" className="flex items-center" onClick={toggleMenu}>
-                    <FaTicketAlt className="mr-2" /> My Tickets
-                  </Link>
-                </li>
-
-                <li>
-                  {isAuthenticated?(
-                    <div>
-                      
-
-                       <li
-                    onClick={handleLogout}
-                    className="flex items-center "
-                      >
-                    <FaPowerOff className="mr-2" /> Logout
+                {/*  */}
+                <ul className=" text-lg">
+                  <li>
+                    <Link
+                      to="/"
+                      onClick={toggleMenu}
+                      className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
+                    >
+                      <FaHome className="mr-3" /> Home
+                    </Link>
                   </li>
-                    </div>
-                  ):(
-                    <div>
-                     <Link to='/login'className='flex items-center'>
-                          SignIn/SignUp
+
+                  {role === 'organizer' && (
+                    <li>
+                      <Link
+                        to="/organizer"
+                        onClick={toggleMenu}
+                        className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
+                      >
+                        <FaPlusCircle className="mr-3" /> Dashboard
                       </Link>
-                    </div>
-                    
+                    </li>
                   )}
-                  
-                </li>
-              </ul>
-            </div>
-          )}
+
+                  <li>
+                    {isAuthenticated ? (
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left flex items-center hover:bg-red-600 px-4 py-3 rounded-lg transition"
+                      >
+                        <FaPowerOff className="mr-3" /> Logout
+                      </button>
+                    ) : (
+                      <Link
+                        to="/login"
+                        onClick={toggleMenu}
+                        className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
+                      >
+                        Sign In / Sign Up
+                      </Link>
+                    )}
+                  </li>
+                </ul>
+              </div>
+            )}
+
         </div>
       </div>
     </nav>
