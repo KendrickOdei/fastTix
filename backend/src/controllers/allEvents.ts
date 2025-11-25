@@ -10,7 +10,7 @@ export const allEvents = asyncHandler(async(req:Request,res:Response,next:NextFu
     const page = Number(req.query.page) || 1
     const limit = Number(req.query.limit) || 10
     const category = req.query.category || ""
-    const search = req.query.search || ""
+    const search = req.query.search || "";
 
 
 
