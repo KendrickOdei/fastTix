@@ -15,6 +15,7 @@ import { getSingleTicket } from "../controllers/getSingleTicket";
 import { authorized } from "../middleware/authRole";
 import dotenv from 'dotenv'
 import { createTicket } from "../controllers/createTicket";
+import { createPurchase } from "../controllers/purchased";
 
 interface AuthRequest extends Request {
   user?: IUser; // Match index.d.ts
@@ -55,8 +56,9 @@ router.get('/:eventId/tickets',authMiddleware,authorized('organizer'),getAllTick
 //create multiple tickets for an event
 router.post('/:eventId/tickets',authMiddleware,authorized('organizer'),createTicket)
 
-// get single ticket
-router.get('/:eventId/tickets/:ticketId',authMiddleware,authorized('organizer'),getSingleTicket)
+// purchase ticket
+router.post("/purchase", authMiddleware,createPurchase)
+
 
 
 

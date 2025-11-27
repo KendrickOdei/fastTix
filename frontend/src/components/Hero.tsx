@@ -4,13 +4,9 @@ import { Link } from 'react-router-dom';
 
 interface Event {
   _id: string;
-  name: string;
-  description: string;
+  title: string;
   date: string;
-  time: string;
   venue: string;
-  price: number;
-  ticketsAvailable: number;
   organizerId: { organizationName: string };
   image?: string;
   promoImages?: string[];
@@ -106,7 +102,7 @@ const Hero = () => {
               {event.image ? (
                 <img
                   src={event.image}
-                  alt={event.name}
+                  alt={event.title}
                   className="w-full h-48 object-cover rounded-t-lg mb-4"
                 />
               ) : (
@@ -114,26 +110,16 @@ const Hero = () => {
                   <span className="text-gray-500">No Image</span>
                 </div>
               )}
-              <h2 className="text-xl font-bold text-green-900">{event.name}</h2>
-               <p className="mt-2 text-gray-600">{event.description}</p>
+              <h2 className="text-xl font-bold text-green-900">{event.title}</h2>
+               
               <p className="mt-2 text-sm text-gray-500">
-                <strong>Date:</strong> {new Date(event.date).toLocaleDateString()}
+                 {new Date(event.date).toLocaleDateString()}
               </p>
+
               <p className="mt-1 text-sm text-gray-500">
-                <strong>Time:</strong> {event.time}
+                {event.venue}
               </p>
-              <p className="mt-1 text-sm text-gray-500">
-                <strong>Venue:</strong> {event.venue}
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                <strong>Price:</strong> ${event.price.toFixed(2)}
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                <strong>Tickets Available:</strong> {event.ticketsAvailable}
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                <strong>Organizer:</strong> {event.organizerId?.organizationName || 'Unknown'}
-              </p>
+
               <Link
                 to={`/event-details/${event._id}`}
                 className="mt-4 inline-block bg-green-800 text-white py-2 px-4 rounded hover:bg-green-600"

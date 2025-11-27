@@ -20,6 +20,8 @@ import { useNavigate } from "react-router-dom";
 import { setNavigate } from "./utils/apiClient";
 import { useEffect } from "react";
 import TicketsList from "./pages/organizer/TicketList";
+import Checkout from "./pages/Checkout";
+import GuestCheckout from "./pages/GuestCheckout";
 
 
 
@@ -52,6 +54,8 @@ function App() {
       <Route path="/search" element={<SearchResults />} />
       <Route path="/event-details/:id" element={<EventDetails />} />
       <Route path="/my-events" element={<MyEvents />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/guest-checkout" element={<GuestCheckout />} />
       <Route path="/edit-event/:id" element={<EditEvent />} />
 
       <Route  element={<OrganizerRoute />}>

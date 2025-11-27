@@ -27,18 +27,19 @@ const ticketSchema: Schema<ITicket> = new Schema({
     type: {type: String, enum: ["paid","free","donation"],default: "paid"},
     minPerOrder: {type: Number, default: 1},
     maxPerOrder: {type: Number, default: 10},
-    remaining: {type: Number, required: false,  },
+    remaining: {type: Number, required: true,  },
     status: {type: String, enum: ["active", "paused","sold_out","hidden"], default: "active"},
     saleStart: {type: Date, required: false,},
     saleEnd: {type: Date, required: false},
     eventId: {type: Schema.Types.ObjectId, ref: 'Event', required: true}
 
  },{timestamps: true})
+ 
 
  ticketSchema.pre('save', function (next){
-    if(!this.remaining){
-        this.remaining = this.quantity
-    }
+    
+        this.remaining = this.quantity - this.sold
+    
     next()
  })
 
