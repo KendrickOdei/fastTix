@@ -6,7 +6,7 @@ import { AppError } from "../utils/AppError";
 import { IUser } from "../models/user";
 
 interface AuthRequest extends Request {
-  user?: IUser; // Match index.d.ts
+  user?: IUser; 
 }
 
 export const getDashboardOverview = asyncHandler(async (

@@ -1,4 +1,4 @@
-// src/pages/EventDetails.tsx
+
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
