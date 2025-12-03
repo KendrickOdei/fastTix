@@ -1,6 +1,5 @@
 import {
   FaHome,
-  FaPlusCircle,
   FaPowerOff,
   FaSearch,
   FaTimes
@@ -134,10 +133,17 @@ const Navbar = () => {
               <FaHome className="mr-2" /> Home
             </Link>
 
+            <Link to="/events" className="hover:text-gray-300 flex items-center">
+               Discover Events
+            </Link>
+            <Link to={isAuthenticated ? "organizer/dashboard" : "/register"} className="hover:text-gray-300 flex items-center">
+               Sell Tickets
+            </Link>
+
             {role === 'organizer' && (
               <>
                 <Link to="organizer/dashboard" className="hover:text-gray-300 flex items-center">
-                  <FaPlusCircle className="mr-2" /> Dashboard
+                  My Dashboard
                 </Link>
 
                 
@@ -215,6 +221,14 @@ const Navbar = () => {
                     >
                       <FaHome className="mr-3" /> Home
                     </Link>
+
+                    <Link
+                      to="/events"
+                      onClick={toggleMenu}
+                      className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
+                    >
+                      <FaHome className="mr-3" /> Discover Events
+                    </Link>
                   </li>
 
                   {role === 'organizer' && (
@@ -224,7 +238,7 @@ const Navbar = () => {
                         onClick={toggleMenu}
                         className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
                       >
-                        <FaPlusCircle className="mr-3" /> Dashboard
+                        My Dashboard
                       </Link>
                     </li>
                   )}

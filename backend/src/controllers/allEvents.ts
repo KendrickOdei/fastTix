@@ -8,24 +8,26 @@ export const allEvents = asyncHandler(async(req:Request,res:Response,next:NextFu
 
     
     const page = Number(req.query.page) || 1
-    const limit = Number(req.query.limit) || 10
-    const category = req.query.category || ""
-    const search = req.query.search || "";
+    const limit = Number(req.query.limit) || 9
+    const category = req.query.category?.toString() || ""
+    const search = req.query.q?.toString() || "";
 
 
 
     const filterEvent: any =  {}
 
     if(search){
-        filterEvent.name = {$regex: search, $options: "i"}
+        filterEvent.title = {$regex: search, $options: "i"}
     }
 
-    if(category){
+    if(category && category.toLowerCase() !== 'all'){
         filterEvent.category = category
     }
 
     const skip = (page - 1) * limit
-    const events = await Event.find(filterEvent).populate('organizerId','organizationName')
+
+    const events = await Event.find(filterEvent)
+    .populate('organizerId','organizationName')
     .skip(skip)
     .limit(limit)
     .sort({createdAt: -1})
@@ -33,8 +35,6 @@ export const allEvents = asyncHandler(async(req:Request,res:Response,next:NextFu
     
 
     const total = await Event.countDocuments(filterEvent)
-
-    if(events.length === 0) {throw new AppError('no events for today' ,404)}
 
     const responseBody = {
         page,

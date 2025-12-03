@@ -22,6 +22,8 @@ import { useEffect } from "react";
 import TicketsList from "./pages/organizer/TicketList";
 import Checkout from "./pages/Checkout";
 import GuestCheckout from "./pages/GuestCheckout";
+import EventsPage from "./pages/EventsPage";
+import Footer from "./components/Footer";
 
 
 
@@ -57,6 +59,8 @@ function App() {
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/guest-checkout" element={<GuestCheckout />} />
       <Route path="/edit-event/:id" element={<EditEvent />} />
+      <Route path="/events" element={<EventsPage />} />
+      
 
       <Route  element={<OrganizerRoute />}>
         <Route path="/organizer"  element={<DashboardLayout />}>
@@ -75,6 +79,7 @@ function App() {
         
         
       </Routes>
+      <Footer/>
     </div>
   );
 }
