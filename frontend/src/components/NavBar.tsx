@@ -53,7 +53,7 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      logout();
       toast.success('Logged out successfully')
       navigate('/login')
     } catch (error: any) {

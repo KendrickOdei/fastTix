@@ -16,6 +16,7 @@ import { authorized } from "../middleware/authRole";
 import dotenv from 'dotenv'
 import { createTicket } from "../controllers/createTicket";
 import { createPurchase } from "../controllers/purchased";
+import { acceptedOrganizerTerms } from "../controllers/acceptOrganizerTerms";
 
 interface AuthRequest extends Request {
   user?: IUser; // Match index.d.ts
@@ -51,13 +52,16 @@ router.put('/edit-event/:id',authMiddleware,authorized('organizer'),editEvent)
 router.delete('/delete/:id',authMiddleware,authorized('organizer'),deleteEvent)
 
 
-router.get('/:eventId/tickets',authMiddleware,authorized('organizer'),getAllTickets)
+router.get('/:eventId/tickets',authMiddleware,getAllTickets)
 
 //create multiple tickets for an event
 router.post('/:eventId/tickets',authMiddleware,authorized('organizer'),createTicket)
 
 // purchase ticket
 router.post("/purchase", authMiddleware,createPurchase)
+
+router.patch('/accept-organizer-terms',authMiddleware,authorized('organizer'),acceptedOrganizerTerms)
+
 
 
 

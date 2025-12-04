@@ -18,11 +18,7 @@ export const getAllTickets = asyncHandler(async(req:AuthRequest,res:Response,nex
 
     if(!event) throw new AppError('Event not found', 404)
     
-    if(event.organizerId.toString() !==
-     req.user?.id 
-   ){
-    throw new AppError('You are not authorized to view tickets for this event', 403)
-   }
+   
    
   const ticketTypes = await Ticket.find({eventId}).sort({createdAt: 1}).populate("eventId")
 

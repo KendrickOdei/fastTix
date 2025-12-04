@@ -12,15 +12,20 @@ export interface AuthRequest extends Request {
 const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (!token) {
-     res.status(401).json({ message: 'No token provided' });
-     return;
+     req.user = undefined
+      next();
+      return;
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {userId: string}
 
     const user = await User.findById(decoded.userId)
-    if(!user) throw new AppError('User not foiund', 404)
+    if(!user) {
+      req.user = undefined;
+       next();
+       return;
+    }
    
     req.user = user;
     next();

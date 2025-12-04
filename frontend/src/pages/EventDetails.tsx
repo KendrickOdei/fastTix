@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { Calendar, MapPin, Clock, ChevronRight, Share2, Heart } from "lucide-react";
-import { apiFetch } from "../utils/apiClient";
 import { useAuth } from "../Context/AuthContext";
 
 interface TicketType {
@@ -43,11 +42,13 @@ export default function EventDetails() {
     const fetchData = async () => {
       try {
         const [eventRes, ticketsRes] = await Promise.all([
-          apiFetch(`/api/events/${id}`),
-          apiFetch(`/api/events/${id}/tickets`)
+          fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/events/${id}`),
+          fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/events/${id}/tickets`)
         ]);
-        setEvent(eventRes);
-        setTickets(ticketsRes.data || []);
+        const eventResData = await eventRes.json()
+        setEvent(eventResData);
+        const ticketsResData = await ticketsRes.json()
+        setTickets(ticketsResData.data || []);
       } catch (err) {
         console.error(err);
       } finally {
