@@ -21,7 +21,7 @@ interface OrderStatusResponse {
 
 export default function PaymentSuccess() {
     const [searchParams] = useSearchParams();
-    const paystackReference = searchParams.get('reference'); // Paystack passes 'reference'
+    const paystackReference = searchParams.get('reference');
     
     const [status, setStatus] = useState<'loading' | OrderStatusResponse['status']>('loading');
     const [orderData, setOrderData] = useState<OrderStatusData | null>(null);

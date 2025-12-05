@@ -100,6 +100,7 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
             email,
             amount: amountInKobo,
             currency: "GHS",
+            reference: purchaseCode,
             callback_url: `${frontendUrl}/payment-success`,
             metadata: {
             order_id: pendingTicket._id, 
