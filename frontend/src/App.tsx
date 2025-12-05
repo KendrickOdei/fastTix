@@ -24,6 +24,7 @@ import Checkout from "./pages/Checkout";
 import GuestCheckout from "./pages/GuestCheckout";
 import EventsPage from "./pages/EventsPage";
 import Footer from "./components/Footer";
+import PaymentSuccess from "./pages/PaymentSuccessPage";
 
 
 
@@ -44,7 +45,7 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light" // or "dark", "colored"
+        theme="light" 
         />
       <Navbar />
       <Routes>
@@ -60,6 +61,7 @@ function App() {
       <Route path="/guest-checkout" element={<GuestCheckout />} />
       <Route path="/edit-event/:id" element={<EditEvent />} />
       <Route path="/events" element={<EventsPage />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
       
 
       <Route  element={<OrganizerRoute />}>

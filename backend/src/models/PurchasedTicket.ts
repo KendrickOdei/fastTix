@@ -2,6 +2,7 @@ import mongoose, {Document,Types,Schema} from "mongoose";
 import { string } from "zod";
 
 export interface IPurchasedTicket extends Document {
+    _id: Types.ObjectId,
     userId: Types.ObjectId | null,
     eventId: Types.ObjectId,
     ticketId: Types.ObjectId,
