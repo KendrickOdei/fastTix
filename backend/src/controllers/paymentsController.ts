@@ -59,7 +59,7 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
 
 export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: Response) => {
     const { ticketId, quantity, email } = req.body;
-    const userId = req.user?.id || "guest";
+    const userId = req.user?.id || null;
 
     if (!ticketId || !quantity || quantity <= 0 || !email) {
         throw new AppError("Missing required fields", 400);

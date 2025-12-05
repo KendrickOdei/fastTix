@@ -14,7 +14,7 @@ export interface IPurchasedTicket extends Document {
 }
 
 const PurchasedTicketSchema : Schema<IPurchasedTicket> = new mongoose.Schema({
-    userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
+    userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: false},
     eventId: {type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true},
     ticketId: {type: mongoose.Schema.Types.ObjectId, ref: "Ticket", required: true},
     quantity: {type: Number, required: true},
