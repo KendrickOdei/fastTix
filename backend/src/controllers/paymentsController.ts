@@ -170,19 +170,17 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
 
     const { amount, metadata, customer } = verifyData.data;
 
-    // ------------------------------------------------
-    // 4. FIND ORDER AND PERFORM FINAL CHECKS
-    // ------------------------------------------------
+    
     const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference });
 
-    // Check 4a: Order must exist in our DB
+    //  Order must exist in our DB
     if (!purchasedTicket) {
         console.error(`Webhook Error: PurchasedTicket order not found for reference ${reference}`);
         return res.status(200).send("Order not found, acknowledged."); 
     }
     
     // Check 4b: Prevent double processing
-    if (purchasedTicket.qrCode) { // We use the presence of qrCode as a fulfillment flag
+    if (purchasedTicket.qrCode !== "") { // We use the presence of qrCode as a fulfillment flag
         console.warn(`Webhook: Duplicate charge.success event for ${reference}. Already fulfilled.`);
         return res.status(200).send("Already fulfilled.");
     }
