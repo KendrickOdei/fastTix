@@ -204,6 +204,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
    
     try {
         await sendTicketEmail(purchasedTicket, customer.email); 
+        console.log(`ATTEMPTING TICKET FULFILLMENT for ${purchasedTicket.purchaseCode}`);
         console.log(`Fulfillment successful for order ${reference}`);
     } catch (err) {
         console.error(`TICKET FULFILLMENT FAILED for ${reference}:`, err);
