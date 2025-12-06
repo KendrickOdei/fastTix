@@ -37,6 +37,7 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
 
     const pendingTicket = await PurchasedTicket.create({
         userId,
+        email,
         eventId: ticket.eventId,
         ticketId: ticketId,
         quantity: quantity,
