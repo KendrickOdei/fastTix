@@ -4,15 +4,15 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiFetch } from "../utils/apiClient";
-import { useAuth } from "../Context/AuthContext"; // Import useAuth to get user email
+import { useAuth } from "../Context/AuthContext"; 
 
 export default function CheckoutPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { user,  } = useAuth(); // Get user data/email
+    const { user,  } = useAuth(); 
     const isAuthenticated = !!user
 
-    // 1. Read parameters from the URL (already correctly done in your EventDetails)
+  
     const ticketId = searchParams.get("ticketId");
     const quantity = searchParams.get("quantity");
 
@@ -22,17 +22,15 @@ export default function CheckoutPage() {
     const userEmail = user?.email; 
 
     useEffect(() => {
-        // NOTE: For guest checkout, you must collect email before this point.
         if (!ticketId || !quantity) {
             toast.error("Missing ticket or quantity information.");
             navigate('/');
             return;
         }
 
-        // 2. Check for email if user is authenticated
         if (!userEmail && isAuthenticated) {
              toast.error("User email missing. Cannot initialize payment.");
-             navigate('/eventDetails'); // Redirect to profile to fill in missing info
+             navigate('/eventDetails'); 
              return;
         }
         
@@ -42,7 +40,6 @@ export default function CheckoutPage() {
         const initiatePaystackPayment = async () => {
             setLoading(true);
             try {
-                // 3. Call your custom backend endpoint to initialize the Paystack transaction
                 const transactionRes = await apiFetch<{ authorizationUrl: string, reference: string }>('/api/payments/initialize-transaction', {
                     method: 'POST',
                     body: JSON.stringify({

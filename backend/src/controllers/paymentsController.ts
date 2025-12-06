@@ -4,64 +4,22 @@ import { AppError } from '../utils/AppError';
 import Ticket from '../models/ticket';
 import * as crypto from "crypto";
 
-import { IUser } from '../models/user';
+import User, { IUser } from '../models/user';
 import PurchasedTicket from '../models/PurchasedTicket';
 import { sendTicketEmail } from '../utils/ticketMailer';
+import { generatePurchaseCode } from '../utils/generateReference';
 
 interface AuthRequest extends Request {
   user?: IUser;
 }
 
-export const checkOrderStatus = asyncHandler(async (req: Request, res: Response) => {
-    const { ref } = req.query;
-
-    if (!ref || typeof ref !== 'string') {
-        return res.status(400).json({ message: 'Missing transaction reference.' });
-    }
-
-    //  Find the purchased ticket record
-    const ticketRecord = await PurchasedTicket.findOne({ purchaseCode: ref })
-        .populate('eventId', 'title date') 
-        .select('purchaseCode quantity totalAmount eventId qrCode'); 
-
-    if (!ticketRecord) {
-        
-        return res.status(404).json({ status: 'not_found', message: 'Order reference not recognized.' });
-    }
-
-    //  Determine the final status for the frontend
-    let status: 'success' | 'pending' | 'failed';
-    let message: string;
-
-    if (ticketRecord.qrCode) {
-       
-        status = 'success';
-        message = 'Payment confirmed and tickets have been emailed!';
-    } else {
-        
-        status = 'pending'; 
-        message = 'Payment successful, but ticket generation is pending. Please check your email in a few minutes.';
-    }
-
-    res.json({
-        status: status,
-        message: message,
-        data: {
-            reference: ticketRecord.purchaseCode,
-            quantity: ticketRecord.quantity,
-            amount: ticketRecord.totalAmount,
-            eventTitle: (ticketRecord.eventId as any)?.title,
-            eventDate: (ticketRecord.eventId as any)?.date,
-        }
-    });
-});
 
 
 export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const { ticketId, quantity, email } = req.body;
+    const { ticketId, quantity, email , name} = req.body;
     const userId = req.user?.id || null;
 
-    if (!ticketId || !quantity || quantity <= 0 || !email) {
+    if (!ticketId || !quantity || quantity <= 0 || !email || !name) {
         throw new AppError("Missing required fields", 400);
     }
 
@@ -73,18 +31,20 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
     }
 
     const totalAmount = ticket.price * quantity 
-    const amountInKobo = totalAmount * 100
+    const amountInKobo = Math.round(totalAmount * 100)
 
-    const purchaseCode = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const purchaseCode = generatePurchaseCode()
 
     const pendingTicket = await PurchasedTicket.create({
         userId,
         eventId: ticket.eventId,
         ticketId: ticketId,
         quantity: quantity,
+        name,
         totalAmount: totalAmount,
         purchaseCode: purchaseCode, 
-        qrCode: '', 
+        status: "pending",
+        qrCode: ''
     });
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -98,17 +58,15 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
         },
         body: JSON.stringify({
             email,
+            name,
             amount: amountInKobo,
             currency: "GHS",
             reference: purchaseCode,
-            callback_url: `${frontendUrl}/payment-success`,
+            callback_url: `${frontendUrl}/payment-success?reference=${purchaseCode}`,
             metadata: {
-            order_id: pendingTicket._id, 
-            custom_fields: [{
-                display_name: "Ticket Type",
-                variable_name: "ticket_type",
-                value: ticket.name,
-            }],
+            order_id: pendingTicket._id.toString(), 
+
+          
         },
         })
     });
@@ -138,7 +96,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     
     const computed = crypto
         .createHmac("sha512", secret)
-        .update(req.body) 
+        .update(JSON.stringify(req.body))
         .digest("hex");
 
     if (computed !== signature) {
@@ -169,10 +127,10 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         return res.status(200).send("Verification failed");
     }
 
-    const { amount, metadata, customer } = verifyData.data;
+    const { amount,  customer } = verifyData.data;
 
     
-    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference });
+    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('eventId');
 
     //  Order must exist in our DB
     if (!purchasedTicket) {
@@ -180,9 +138,9 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         return res.status(200).send("Order not found, acknowledged."); 
     }
     
-    // Check 4b: Prevent double processing
-    if (purchasedTicket.qrCode !== "") { // We use the presence of qrCode as a fulfillment flag
-        console.warn(`Webhook: Duplicate charge.success event for ${reference}. Already fulfilled.`);
+    //  Prevent double processing
+    if (purchasedTicket.status === "success") {
+        console.warn(`Order ${reference}. Already fulfilled.`);
         return res.status(200).send("Already fulfilled.");
     }
 
@@ -203,15 +161,77 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     });
 
    
-    try {
-        await sendTicketEmail(purchasedTicket, customer.email); 
-        console.log(`ATTEMPTING TICKET FULFILLMENT for ${purchasedTicket.purchaseCode}`);
-        console.log(`Fulfillment successful for order ${reference}`);
-    } catch (err) {
-        console.error(`TICKET FULFILLMENT FAILED for ${reference}:`, err);
-        
+  purchasedTicket.status = 'success';
+
+  await purchasedTicket.save()
+  
+  try {
+    const pdfPayload = {
+        purchaseCode: purchasedTicket.purchaseCode,
+        eventTitle: (purchasedTicket.eventId as any)?.title || 'Event',
+        eventDate: (purchasedTicket.eventId as any)?.date || new Date().toISOString(),
+        ticketType: (purchasedTicket as any).ticketType || 'Regular',
+        ticketPrice: purchasedTicket.totalAmount/purchasedTicket.quantity,
+        quantity: purchasedTicket.quantity,
+        name:
+        purchasedTicket.name || (customer?.email || null),
+        email: customer?.email || purchasedTicket.email,
+        venue: (purchasedTicket.eventId as any)?.venue || 'venue',
+        eventImageUrl:
+        (purchasedTicket.eventId as any)?.image || undefined
+
     }
+    await sendTicketEmail(pdfPayload)
+    console.log(`Ticket email sent for order ${reference}`)
+  } catch (error) {
+    console.error("Failed to send ticket to email", error)
+  }
     
     
     res.status(200).send("OK");
+});
+
+
+export const checkOrderStatus = asyncHandler(async (req: Request, res: Response) => {
+    const { ref } = req.query;
+
+    if (!ref || typeof ref !== 'string') {
+        return res.status(400).json({ message: 'Missing transaction reference.' });
+    }
+
+    //  Find the purchased ticket record
+    const ticketRecord = await PurchasedTicket.findOne({ purchaseCode: ref })
+        .populate('eventId', 'title date') 
+        .select('purchaseCode quantity totalAmount eventId qrCode'); 
+
+    if (!ticketRecord) {
+        
+        return res.status(404).json({ status: 'not_found', message: 'Order reference not recognized.' });
+    }
+
+    //  Determine the final status for the frontend
+    let status: 'success' | 'pending' | 'failed';
+    let message: string;
+
+    if (ticketRecord.status === 'success') {
+       
+        status = 'success';
+        message = 'Payment confirmed and tickets have been emailed!';
+    } else {
+        
+        status = 'pending'; 
+        message = 'Payment successful, but ticket generation is pending. Please check your email in a few minutes.';
+    }
+
+    res.json({
+        status: status,
+        message: message,
+        data: {
+            reference: ticketRecord.purchaseCode,
+            quantity: ticketRecord.quantity,
+            amount: ticketRecord.totalAmount,
+            eventTitle: (ticketRecord.eventId as any)?.title,
+            eventDate: (ticketRecord.eventId as any)?.date,
+        }
+    });
 });

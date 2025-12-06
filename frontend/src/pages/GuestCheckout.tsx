@@ -76,6 +76,7 @@ export default function GuestCheckout() {
                 
                 body: JSON.stringify({
                     email: guestData.email,
+                    name: guestData.name,
                     ticketId: ticketId,
                     quantity: quantity,
                 }),
