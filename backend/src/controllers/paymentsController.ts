@@ -97,7 +97,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     
     const computed = crypto
         .createHmac("sha512", secret)
-        .update(JSON.stringify(req.body))
+        .update(req.body)
         .digest("hex");
 
     if (computed !== signature) {
@@ -131,7 +131,9 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     
 
     
-    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('eventId');
+    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('eventId')
+                                                                                       .populate('ticketId')
+                                                                                           
 
     //  Order must exist in our DB
     if (!purchasedTicket) {

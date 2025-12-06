@@ -11,7 +11,7 @@ export interface ITicket extends Document {
     maxPerOrder: number,
     quantity: number,
     remaining: number,
-    status: "active" | "paused"|"sold_out"|"hidden",
+    status: 'pending' | 'success' | 'failed' | 'not_found'
     saleStart?: Date,
     saleEnd?: Date,
     eventId: Types.ObjectId
@@ -28,7 +28,7 @@ const ticketSchema: Schema<ITicket> = new Schema({
     minPerOrder: {type: Number, default: 1},
     maxPerOrder: {type: Number, default: 10},
     remaining: {type: Number, required: true,  },
-    status: {type: String, enum: ["active", "paused","sold_out","hidden"], default: "active"},
+    status: {type: String, enum: ["pending", "success","failed","not_found"], default: "pending"},
     saleStart: {type: Date, required: false,},
     saleEnd: {type: Date, required: false},
     eventId: {type: Schema.Types.ObjectId, ref: 'Event', required: true}
