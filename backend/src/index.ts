@@ -12,6 +12,7 @@ import { errorHandler } from './middleware/errorHandler';
 import cookieParser from 'cookie-parser';
 import dashboardRoutes from './routes/dashboard.route'
 import PaymentRoute from './routes/payments'
+import { verifyTransactionWebhook } from './controllers/paymentsController';
 
 
 
@@ -22,7 +23,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use('/api/payments/paystack-webhook', express.raw({ type: 'application/json' }));
+app.use('/api/payments/paystack-webhook', express.raw({ type: 'application/json' }),verifyTransactionWebhook);
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser())
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

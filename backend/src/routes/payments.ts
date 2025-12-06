@@ -12,6 +12,6 @@ router.get('/status', checkOrderStatus)
 router.post('/initialize-transaction', authMiddleware, initializeTransaction); 
 
 
-router.post('/paystack-webhook', verifyTransactionWebhook);
+
 
  export default router;
