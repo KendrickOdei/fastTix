@@ -128,7 +128,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         return res.status(200).send("Verification failed");
     }
 
-    const { amount,  customer } = verifyData.data;
+    
 
     
     const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('eventId');
@@ -146,6 +146,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     }
 
     // Final Price Validation
+    const amount = event.data.amount
     const expectedAmount = purchasedTicket.totalAmount * 100; // Total amount in Pesewas
     if (amount !== expectedAmount) {
         
@@ -175,8 +176,8 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         ticketPrice: purchasedTicket.totalAmount/purchasedTicket.quantity,
         quantity: purchasedTicket.quantity,
         name:
-        purchasedTicket.name || (customer?.email || null),
-        email: customer?.email || purchasedTicket.email,
+        purchasedTicket.name || "Valued Customer",
+        email:  purchasedTicket.email ,
         venue: (purchasedTicket.eventId as any)?.venue || 'venue',
         eventImageUrl:
         (purchasedTicket.eventId as any)?.image || undefined
