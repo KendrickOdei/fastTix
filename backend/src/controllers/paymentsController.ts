@@ -91,7 +91,7 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
 
 export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: Response) => {
     
-    const secret = process.env.PAYSTACK_SECRET_KEY!;
+    const secret = process.env.PAYSTACK_WEBHOOK_SECRET!;
     const signature = req.headers['x-paystack-signature'];
     
     
@@ -105,8 +105,10 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         return res.status(400).send("Invalid signature"); 
     }
 
+    console.log("webhook received", req.body)
+
    
-    const event = JSON.parse(req.body.toString()); // Parse after verification
+    const event = req.body;
 
     if (event.event !== "charge.success") {
         return res.status(200).send("Ignored");
