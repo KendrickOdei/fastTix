@@ -1,4 +1,4 @@
-import fetch from "node-fetch"
+
 
 export async function fetchImageBuffer(url: string): Promise<Buffer | null>{
     try {
