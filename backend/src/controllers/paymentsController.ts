@@ -54,7 +54,7 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
     const paystackResponse = await fetch("https://api.paystack.co/transaction/initialize", {
         method: "POST",
         headers: {
-            "Authorization": `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+            "Authorization": `Bearer ${process.env.PAYSTACK_WEBHOOK_SECRET}`,
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
