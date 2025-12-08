@@ -208,7 +208,7 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
     //  Find the purchased ticket record
     const ticketRecord = await PurchasedTicket.findOne({ purchaseCode: ref })
         .populate('eventId', 'title date') 
-        .select('purchaseCode quantity totalAmount eventId qrCode'); 
+        .select('purchaseCode quantity totalAmount eventId qrCode status'); 
 
     if (!ticketRecord) {
         
