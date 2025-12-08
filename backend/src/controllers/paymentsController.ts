@@ -54,7 +54,7 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
     const paystackResponse = await fetch("https://api.paystack.co/transaction/initialize", {
         method: "POST",
         headers: {
-            "Authorization": `Bearer ${process.env.PAYSTACK_WEBHOOK_SECRET}`,
+            "Authorization": `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
@@ -93,12 +93,12 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     
     console.log("webhook received", req.body)
     console.log("webhook received from paystack")
-    const secret = process.env.PAYSTACK_WEBHOOK_SECRET!;
+     
     const signature = req.headers['x-paystack-signature'];
     
     
     const computed = crypto
-        .createHmac("sha512", secret)
+        .createHmac("sha512", process.env.PAYSTACK_WEBHOOK_SECRET!)
         .update(req.body)
         .digest("hex");
 
@@ -110,7 +110,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     
 
    
-    const event = req.body;
+    const event = JSON.parse(req.body)
 
     if (event.event !== "charge.success") {
         return res.status(200).send("Ignored");
@@ -118,7 +118,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
 
     const reference = event.data.reference;
 
-    
+    const secret = process.env.PAYSTACK_SECRET_KEY!;
     const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
         headers: {
             "Authorization": `Bearer ${secret}`
@@ -136,6 +136,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
 
     
     const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('ticketId')
+                                                                                      .populate('eventId')
                                                                                        
                                                                                            
 
@@ -167,7 +168,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     });
 
    
- 
+  
   
   try {
     const pdfPayload = {
@@ -187,9 +188,9 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     }
     await sendTicketEmail(pdfPayload)
 
-  purchasedTicket.status = 'success';
+    purchasedTicket.status = 'success';
 
-  await purchasedTicket.save()
+    await purchasedTicket.save()
     console.log(`Ticket email sent for order ${reference}`)
   } catch (error) {
     console.error("Failed to send ticket to email", error)
@@ -222,24 +223,28 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
     let message: string;
 
     if (ticketRecord.status === 'success') {
-       
-        status = 'success';
-        message = 'Payment confirmed and tickets have been emailed!';
-    } else {
-        
-        status = 'pending'; 
-        message = 'Payment successful, but ticket generation is pending. Please check your email in a few minutes.';
+        return res.json({
+            status: 'success',
+            message: 'Payment confirmed and tickets have been emailed!',
+            data: {
+                reference: ticketRecord.purchaseCode,
+                quantity: ticketRecord.quantity,
+                amount: ticketRecord.totalAmount,
+                eventTitle: (ticketRecord.eventId as any)?.title || 'Event',
+                eventDate: (ticketRecord.eventId as any)?.date || new Date(),
+            }
+        });
     }
 
-    res.json({
-        status: status,
-        message: message,
+   return res.json({
+        status: 'pending',
+        message: 'We are generating your tickets right now. This takes 5-15 seconds.',
         data: {
             reference: ticketRecord.purchaseCode,
             quantity: ticketRecord.quantity,
             amount: ticketRecord.totalAmount,
-            eventTitle: (ticketRecord.eventId as any)?.title,
-            eventDate: (ticketRecord.eventId as any)?.date,
+            eventTitle: (ticketRecord.eventId as any)?.title || 'Event',
+            eventDate: (ticketRecord.eventId as any)?.date || new Date(),
         }
     });
 });
