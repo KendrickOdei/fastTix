@@ -128,6 +128,8 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     });
 
     const verifyData = await verifyRes.json();
+
+    console.log('verify data', verifyData)
     
     // Check if verification failed
     if (!verifyData.status || verifyData.data.status !== "success") {
