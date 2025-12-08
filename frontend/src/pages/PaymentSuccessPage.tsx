@@ -21,38 +21,63 @@ interface OrderStatusResponse {
 
 export default function PaymentSuccess() {
     const [searchParams] = useSearchParams();
-    const paystackReference = searchParams.get('reference');
+    const paystackReference = searchParams.get('reference'); // Paystack passes 'reference'
     
     const [status, setStatus] = useState<'loading' | OrderStatusResponse['status']>('loading');
     const [orderData, setOrderData] = useState<OrderStatusData | null>(null);
     const [message, setMessage] = useState('Verifying payment status...');
 
-    useEffect(() => {
-        if (!paystackReference) {
-            setStatus('failed');
-            setMessage('Invalid URL. Missing payment reference.');
-            return;
-        }
+            
 
-        const fetchStatus = async () => {
-            try {
-                // Call the new backend endpoint
-                const res = await apiFetch<OrderStatusResponse>(`/api/payments/status?ref=${paystackReference}`);
-                
-                setStatus(res.status);
-                setMessage(res.message);
-                if (res.data) {
-                    setOrderData(res.data);
+ useEffect(() => {
+                if (!paystackReference) {
+                    setStatus('failed');
+                    setMessage('Invalid URL. Missing payment reference.');
+                    return;
                 }
-            } catch (err) {
-                console.error('Error fetching order status:', err);
-                setStatus('failed');
-                setMessage('Could not connect to the server to verify payment. Please check your email for confirmation.');
-            }
-        };
 
-        fetchStatus();
-    }, [paystackReference]);
+                let attempts = 0;
+                const maxAttempts = 20; 
+
+                const fetchStatus = async () => {
+                    try {
+                        const res = await apiFetch<OrderStatusResponse>(
+                            `/api/payments/status?ref=${paystackReference}`
+                        );
+
+                        // SUCCESS → stop polling
+                        if (res.status === 'success') {
+                            setStatus('success');
+                            setMessage(res.message);
+                            if (res.data) setOrderData(res.data);
+                            return;
+                        }
+
+                        // Still pending  keep trying
+                        if (res.status === 'pending' && attempts < maxAttempts) {
+                            attempts++;
+                            setMessage('Generating your tickets... almost done!');
+                            setTimeout(fetchStatus, 4000); 
+                            return;
+                        }
+
+                        // Any other state (failed, not_found)
+                        setStatus(res.status);
+                        setMessage(res.message);
+
+                    } catch (err) {
+                        if (attempts < maxAttempts) {
+                            attempts++;
+                            setTimeout(fetchStatus, 5000);
+                        } else {
+                            setStatus('failed');
+                            setMessage('Taking longer than usual. Please check your email in 2 minutes.');
+                        }
+                    }
+                };
+
+                fetchStatus();
+            }, [paystackReference]);
 
     //  Content Rendering 
     const renderContent = () => {
@@ -86,9 +111,11 @@ export default function PaymentSuccess() {
                 return (
                     <>
                         <Clock size={64} className="text-yellow-500 mb-4" />
-                        <h2 className="text-4xl font-bold text-yellow-700">Payment Pending</h2>
-                        <p className="text-xl text-gray-700 mt-2">{message}</p>
-                        <p className="mt-4 text-md text-gray-600">If you do not receive your email within 10 minutes, please contact support with the reference below.</p>
+                        <h2 className="text-4xl font-bold text-yellow-700">Almost there!</h2>
+                        <p className="text-xl text-gray-700 mt-2">
+                            We're generating your tickets right now...
+                        </p>
+                        <p className="mt-4 text-md text-gray-600">This usually takes 5-15 seconds</p>
                     </>
                 );
             case 'failed':
