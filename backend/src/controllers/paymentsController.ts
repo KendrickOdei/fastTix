@@ -135,8 +135,8 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     
 
     
-    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('eventId')
-                                                                                       .populate('ticketId')
+    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('ticketId')
+                                                                                       
                                                                                            
 
     //  Order must exist in our DB
