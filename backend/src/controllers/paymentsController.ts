@@ -167,9 +167,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     });
 
    
-  purchasedTicket.status = 'success';
-
-  await purchasedTicket.save()
+ 
   
   try {
     const pdfPayload = {
@@ -188,6 +186,10 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
 
     }
     await sendTicketEmail(pdfPayload)
+
+  purchasedTicket.status = 'success';
+
+  await purchasedTicket.save()
     console.log(`Ticket email sent for order ${reference}`)
   } catch (error) {
     console.error("Failed to send ticket to email", error)
