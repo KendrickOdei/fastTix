@@ -46,20 +46,14 @@ export default function PaymentSuccess() {
                         );
 
                         // SUCCESS → stop polling
-                        if (res.status === 'success') {
+                        if (res.status === 'pending') {
                             setStatus('success');
                             setMessage(res.message);
                             if (res.data) setOrderData(res.data);
                             return;
                         }
 
-                        // Still pending  keep trying
-                        if (res.status === 'pending' && attempts < maxAttempts) {
-                            attempts++;
-                            setMessage('Generating your tickets... almost done!');
-                            setTimeout(fetchStatus, 4000); 
-                            return;
-                        }
+                        
 
                         // Any other state (failed, not_found)
                         setStatus(res.status);
