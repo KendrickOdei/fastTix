@@ -210,7 +210,7 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
         return res.status(400).json({ message: 'Missing transaction reference.' });
     }
 
-    //  Find the purchased ticket record
+    //  find the purchased ticket record
     const ticketRecord = await PurchasedTicket.findOne({ purchaseCode: ref })
         .populate('eventId', 'title date') 
         .select('purchaseCode quantity totalAmount eventId qrCode status'); 
