@@ -91,6 +91,8 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
 
 export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: Response) => {
     
+    console.log("webhook received", req.body)
+    console.log("webhook received from paystack")
      
     const signature = req.headers['x-paystack-signature'];
     
@@ -100,7 +102,7 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         .update(req.body)
         .digest("hex");
 
-        
+        console.log(computed)
 
     if (computed !== signature) {
         
@@ -117,6 +119,25 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     }
 
     const reference = event.data.reference;
+
+    const secret = process.env.PAYSTACK_SECRET_KEY!;
+    const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
+        headers: {
+            "Authorization": `Bearer ${secret}`
+        }
+    });
+
+    const verifyData = await verifyRes.json();
+
+    console.log('verify data', verifyData)
+    
+    // Check if verification failed
+    if (!verifyData.status || verifyData.data.status !== "success") {
+        return res.status(200).send("Verification failed");
+    }
+
+    
+
     
     const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('ticketId')
                                                                                       .populate('eventId')
