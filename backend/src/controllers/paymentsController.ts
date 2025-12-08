@@ -102,6 +102,8 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         .update(req.body)
         .digest("hex");
 
+        console.log(computed)
+
     if (computed !== signature) {
         
         return res.status(400).send("Invalid signature"); 
