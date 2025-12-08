@@ -141,13 +141,11 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
 
     //  Order must exist in our DB
     if (!purchasedTicket) {
-        console.error(`Webhook Error: PurchasedTicket order not found for reference ${reference}`);
-        return res.status(200).send("Order not found, acknowledged."); 
+        return res.status(200).send("Order not found"); 
     }
     
     //  Prevent double processing
     if (purchasedTicket.status === "success") {
-        console.warn(`Order ${reference}. Already fulfilled.`);
         return res.status(200).send("Already fulfilled.");
     }
 

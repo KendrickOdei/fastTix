@@ -65,7 +65,7 @@ export async function generateTicketPdf(payload: TicketPdfPayload): Promise<Buff
       const pillHeight = 36;
       const startX = doc.x;
       const startY = doc.y;
-      // Draw pill gradient-like (solid blue fill)
+      // Draw pill gradient-like 
       doc.roundedRect(startX, startY, pillWidth, pillHeight, 18).fill("#0ea5a9"); // teal-ish
       // Text inside pill
       doc

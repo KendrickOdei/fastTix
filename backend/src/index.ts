@@ -13,7 +13,7 @@ import cookieParser from 'cookie-parser';
 import dashboardRoutes from './routes/dashboard.route'
 import PaymentRoute from './routes/payments'
 import { verifyTransactionWebhook } from './controllers/paymentsController';
-
+import  connectDB  from './config/db';
 
 
 
@@ -22,6 +22,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+connectDB()
 // Middleware
 app.use('/api/payments/paystack-webhook', express.raw({ type: 'application/json' }),verifyTransactionWebhook);
 app.use(express.json({ limit: '10mb' }));
@@ -40,7 +41,7 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (health checks, server → server)
+      
       if (!origin) return callback(null, true);
 
       if (allowedOrigins.includes(origin)) {
@@ -54,10 +55,6 @@ app.use(
 );
 
 // Database Connection
-mongoose
-  .connect(process.env.MONGO_URI as string)
-  .then(() => console.log('MongoDB Connected'))
-  .catch((error) => console.log('MongoDB connection error:', error));
 
 // Use routes
 app.get("/", (req, res) => {
