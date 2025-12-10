@@ -227,7 +227,7 @@ const Navbar = () => {
                       onClick={toggleMenu}
                       className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
                     >
-                      <FaHome className="mr-3" /> Discover Events
+                       Discover Events
                     </Link>
                   </li>
 

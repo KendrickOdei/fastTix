@@ -13,39 +13,65 @@ interface AuthRequest extends Request {
   user?: IUser;
 }
 
+interface TicketItem {
+  ticketId: string;
+  quantity: number;
+}
 
+interface InitializePayload {
+  tickets: TicketItem[];  // ← NOW AN ARRAY
+  email: string;
+  name: string;
+}
 
 export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: Response) => {
-    const { ticketId, quantity, email , name} = req.body;
+    const { tickets, email, name } = req.body as InitializePayload;
     const userId = req.user?.id || null;
 
-    if (!ticketId || !quantity || quantity <= 0 || !email || !name) {
+    if (!tickets || tickets.length === 0 || !email || !name) {
         throw new AppError("Missing required fields", 400);
     }
 
-    const ticket = await Ticket.findById(ticketId).populate("eventId");
-    if (!ticket) throw new AppError("Ticket not found", 404);
+    let totalAmount = 0;
+    const ticketDetails = [];
 
-    if (ticket.remaining < quantity) {
-        throw new AppError(`Only ${ticket.remaining} tickets left`, 400);
+    for (const item of tickets) {
+        const ticket = await Ticket.findById(item.ticketId).populate("eventId");
+        if (!ticket) throw new AppError(`Ticket ${item.ticketId} not found`, 404);
+        if (ticket.remaining < item.quantity) {
+            throw new AppError(`Only ${ticket.remaining} ${ticket.type} tickets left`, 400);
+        }
+
+    const amount = ticket.price * item.quantity 
+    totalAmount += amount;
+
+    
+
+    ticketDetails.push({
+            ticketId: ticket._id,
+            quantity: item.quantity,
+            price: ticket.price,
+            type: ticket.type,
+        });
     }
 
-    const totalAmount = ticket.price * quantity 
-    const amountInKobo = Math.round(totalAmount * 100)
-
+    const amountInKobo = Math.round(totalAmount * 100);
     const purchaseCode = generatePurchaseCode()
 
     const pendingTicket = await PurchasedTicket.create({
         userId,
         email,
-        eventId: ticket.eventId,
-        ticketId: ticketId,
-        quantity: quantity,
+        eventId: (await Ticket.findById(tickets[0].ticketId))?.eventId,
         name,
         totalAmount: totalAmount,
         purchaseCode: purchaseCode, 
         status: "pending",
-        qrCode: ''
+        qrCode: '',
+        tickets: ticketDetails.map(t => ({
+            ticketId: t.ticketId,
+            quantity: t.quantity,
+            price: t.price,
+        }))
     });
 
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
@@ -163,15 +189,17 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
          return res.status(200).send("Amount mismatch, fulfillment halted."); 
     }
     
-    
-    const quantity = purchasedTicket.quantity;
+  
+for (const item of purchasedTicket.tickets) {
+      await Ticket.findByIdAndUpdate(item.ticketId, {
+        $inc: { 
+          sold: item.quantity, 
+          remaining: -item.quantity 
+        }
+      });
+    }
 
-    
-    await Ticket.findByIdAndUpdate(purchasedTicket.ticketId, {
-        $inc: { sold: quantity, remaining: -quantity }
-    });
-
-   
+   const totalQuantity = purchasedTicket.tickets.reduce((sum, t) => sum + t.quantity, 0);
   
   
   try {
@@ -180,8 +208,8 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
         eventTitle: (purchasedTicket.eventId as any)?.title || 'Event',
         eventDate: (purchasedTicket.eventId as any)?.date || new Date().toISOString(),
         ticketType: (purchasedTicket as any).ticketType || 'Regular',
-        ticketPrice: purchasedTicket.totalAmount/purchasedTicket.quantity,
-        quantity: purchasedTicket.quantity,
+        ticketPrice: purchasedTicket.totalAmount/totalQuantity,
+        quantity: totalQuantity,
         name:
         purchasedTicket.name || "Valued Customer",
         email:  purchasedTicket.email ,
@@ -223,8 +251,8 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
     }
 
     //  Determine the final status for the frontend
-    let status: 'success' | 'pending' | 'failed';
-    let message: string;
+    const totalQty = ticketRecord.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    
 
     if (ticketRecord.status === 'success') {
         return res.json({
@@ -232,7 +260,7 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
             message: 'Payment confirmed and tickets have been emailed!',
             data: {
                 reference: ticketRecord.purchaseCode,
-                quantity: ticketRecord.quantity,
+                quantity: totalQty,
                 amount: ticketRecord.totalAmount,
                 eventTitle: (ticketRecord.eventId as any)?.title || 'Event',
                 eventDate: (ticketRecord.eventId as any)?.date || new Date(),
@@ -245,7 +273,7 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
         message: 'We are generating your tickets right now. This takes 5-15 seconds.',
         data: {
             reference: ticketRecord.purchaseCode,
-            quantity: ticketRecord.quantity,
+            quantity: totalQty,
             amount: ticketRecord.totalAmount,
             eventTitle: (ticketRecord.eventId as any)?.title || 'Event',
             eventDate: (ticketRecord.eventId as any)?.date || new Date(),

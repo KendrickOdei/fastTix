@@ -34,7 +34,7 @@ function App() {
     setNavigate(navigate)
   }, [navigate])
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <ToastContainer
         position="top-right" // Where toasts appear
         autoClose={5000} // Close after 5 seconds
@@ -48,6 +48,7 @@ function App() {
         theme="light" 
         />
       <Navbar />
+      <main className="flex-grow">
       <Routes>
       <Route path="/" element={<Hero />} />
       <Route path="/create-event" element={<CreateEvents />} />
@@ -80,7 +81,9 @@ function App() {
       
         
         
-      </Routes>
+      </Routes> 
+      </main>
+
       <Footer/>
     </div>
   );

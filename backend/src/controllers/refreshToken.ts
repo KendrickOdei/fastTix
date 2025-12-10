@@ -1,38 +1,45 @@
 import { Request,Response, NextFunction} from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AppError } from "../utils/AppError";
-//import { isRefreshJwtAllowed } from "../utils/refreshToken";
-//import { signAccessToken, allowListJti } from "../utils/accessToken";
 import jwt from 'jsonwebtoken'
 import { RefreshToken } from "../models/refreshToken";
-import bcrypt from 'bcryptjs'
+import User from "../models/user";
 
 
-//renew access tken when old one expires
+
+//renew access tken when old one expire
+
+
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
-  const  rawToken = req.cookies.refreshToken;
+  const rawToken = req.cookies.refreshToken;
 
-  if (!rawToken) throw new AppError("No refresh token", 400);
+  if (!rawToken) {
+    throw new AppError("No refresh token", 400);
+  }
 
-  // find token in database
-  const tokenDb = await RefreshToken.findOne({expiresAt: {$gt:
-    new Date()
-  }})
+  // Find the token in DB 
+  const tokenDb = await RefreshToken.findOne({
+    token: rawToken,                    // ← Direct string match
+    expiresAt: { $gt: new Date() }
+  });
 
-  if(!tokenDb) throw new AppError('Refresh token invalid', 401);
+  if (!tokenDb) {
+    throw new AppError('Refresh token invalid or expired', 401);
+  }
 
-const isMatch = await bcrypt.compare(rawToken, tokenDb.token);
-if(!isMatch) throw new AppError('Refresh token invalid', 401);
-  //issue new access token
+  // Generate new access token
+  const user = await User.findById(tokenDb.userId);
+  if (!user) throw new AppError('User not found', 404);
 
-  const accessToken = jwt.sign(
-    {userId: tokenDb.userId},
-    process.env.JWT_SECRET! as string,
-    {expiresIn: '1h'}
-  )
+  const payload = {
+    userId: user._id,
+    email: user.email,
+    userName: user.userName,
+    organizationName: user.organizationName,
+    role: user.role
+  };
 
-  res.json({ 
-    accessToken
-    
- });
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '1h' });
+
+  res.json({ accessToken });
 });

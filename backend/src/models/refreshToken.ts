@@ -14,13 +14,6 @@ const refreshTokenSchema: Schema<IRefresh> = new mongoose.Schema({
     expiresAt: {type: Date, required: true, }
 },{timestamps: true})
 
-refreshTokenSchema.pre('save', async function(next){
-    if(this.isModified('token')){
-        const salt = await bcrypt.genSalt(10);
-        this.token = await bcrypt.hash(this.token, salt)
-    }
 
-    next()
-})
 
 export const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema)

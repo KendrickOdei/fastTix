@@ -1,41 +1,51 @@
-import mongoose, {Document,Types,Schema} from "mongoose";
-import { string } from "zod";
+import mongoose, { Document, Types, Schema } from "mongoose";
 
 export interface IPurchasedTicket extends Document {
-    _id: Types.ObjectId,
-    userId: Types.ObjectId | null,
-    name: string,
-    email: string,
-    eventId: Types.ObjectId,
-    ticketId: Types.ObjectId,
-    quantity: number,
-    totalAmount: number,
-    purchaseCode: string,
-    qrCode: string,
-    status: 'pending' | 'success' | 'failed' | 'not_found';
-    createdAt: Date
+  _id: Types.ObjectId;
+  userId: Types.ObjectId | null;
+  name: string;
+  email: string;
+  eventId: Types.ObjectId;
+  
+  // NEW: Multiple ticket types in one order
+  tickets: {
+    ticketId: Types.ObjectId;
+    quantity: number;
+    price: number;
+  }[];
+
+  totalAmount: number;
+  purchaseCode: string;
+  qrCode: string;
+  status: 'pending' | 'success' | 'failed' | 'not_found';
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const PurchasedTicketSchema : Schema<IPurchasedTicket> = new mongoose.Schema({
-    userId: {type: mongoose.Schema.Types.ObjectId, ref: "User", required: false},
-    eventId: {type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true},
-    ticketId: {type: mongoose.Schema.Types.ObjectId, ref: "Ticket", required: true},
-    quantity: {type: Number, required: true},
-    totalAmount: {type: Number, required: true},
-    name: {type: String, required: true},
-    email: {type: String, required: true},
-    purchaseCode: {type: String, required: false},
-    status: { 
-        type: String, 
-        enum: ['pending' , 'success' , 'failed' , 'not_found'], 
-        default: 'pending' 
-    },
-    qrCode: {type: String, required: false},
-    
-},{timestamps: true})
+const PurchasedTicketSchema: Schema<IPurchasedTicket> = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
+  eventId: { type: Schema.Types.ObjectId, ref: "Event", required: true },
+  
+  // THIS IS THE KEY CHANGE — ARRAY OF TICKETS
+  tickets: [{
+    ticketId: { type: Schema.Types.ObjectId, ref: "Ticket", required: true },
+    quantity: { type: Number, required: true, min: 1 },
+    price: { type: Number, required: true },
+  }],
+
+  totalAmount: { type: Number, required: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  purchaseCode: { type: String, required: true, unique: true },
+  qrCode: { type: String, default: '' },
+  status: { 
+    type: String, 
+    enum: ['pending', 'success', 'failed', 'not_found'], 
+    default: 'pending' 
+  },
+}, { timestamps: true });
 
 
 
-const PurchasedTicket = mongoose.model('PurchasedTicket', PurchasedTicketSchema)
-
-export default PurchasedTicket
+const PurchasedTicket = mongoose.model<IPurchasedTicket>('PurchasedTicket', PurchasedTicketSchema);
+export default PurchasedTicket;
