@@ -1,178 +1,288 @@
-import { useState,  } from 'react';
-import {  useSearchParams } from 'react-router-dom';
-import { apiFetch } from '../utils/apiClient'; 
 
-// Define the shape of the data needed for the form
-interface GuestData {
-    name: string;
+import { useEffect, useState } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { apiFetch } from "../utils/apiClient";
+import { useAuth } from "../Context/AuthContext";
+import { Loader2 } from "lucide-react";
+
+// Define the structure for the transaction payload
+interface TransactionPayload {
+    tickets: {
+        ticketId: string;
+        quantity: number;
+        price: number;
+    }[];
     email: string;
-    phone: string;
-}
-
-// Define the shape of the successful API response
-interface InitTransactionResponse {
-    authorizationUrl: string;
-    reference: string;
+    name: string;
 }
 
 export default function GuestCheckout() {
     
-    const [guestData, setGuestData] = useState<GuestData>({ name: '', email: '', phone: '' });
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
 
-
+    const [orderItems, setOrderItems] = useState<any[]>([]);
+    const [orderTotalQuantity, setOrderTotalQuantity] = useState<number>(0);
+    const [orderSubtotal, setOrderSubtotal] = useState<number>(0);
     
-    // Ensure quantity is treated as a number, defaulting to 0 if invalid
-    const ticketId = searchParams.get("ticketId");
-    const quantity = searchParams.get("quantity");
-
+    //  Retrieve user AND loading state from AuthContext
+    const { user, loading: loadingAuth } = useAuth(); // Renamed to loadingAuth to avoid conflict
     
+    // State for local form data, pre-filled from AuthContext user
+    const [formData, setFormData] = useState({
+        name: user?.fullName || '', 
+        email: user?.email || '',  
+    });
+    
+    // State to track only the Paystack initiation process
+    const [loadingPayment, setLoadingPayment] = useState(false);
+    
+    const isAuthenticated = !!user;
+    
+    let eventId = searchParams.get("eventId")
+    
+    
+    // Fallback to session storage if URL params are missing
+    if (!eventId) {
+        eventId = sessionStorage.getItem('checkout_eventId');
+    }
 
-
-    //  HANDLERS
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setGuestData({ ...guestData, [e.target.name]: e.target.value });
-    };
-
-    const validateForm = () => {
-        if (!guestData.name || !guestData.email || !guestData.phone) {
-            return 'All fields are required.';
-        }
-        if (Number(quantity) <= 0 || !ticketId) {
-            return 'Missing ticket information. Please return to the event page.';
-        }
-        // Basic email validation
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestData.email)) {
-             return 'Please enter a valid email address.';
-        }
-        return null;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
-        const validationError = validateForm();
-        if (validationError) {
-            setError(validationError);
+    //  HANDLE TICKET DATA AND ORDER SUMMARY 
+    useEffect(() => {
+        if (loadingAuth) return; // Wait for auth status
+        
+        const rawItems = sessionStorage.getItem('checkout_selectedTickets');
+        
+        if (!eventId) {
+            toast.error("Event information missing. Returning home.");
+            navigate('/');
             return;
         }
-        
-        setIsLoading(true);
 
-        try {
-            // Check for required data one last time before API call
-            if (Number(quantity) <= 0 || !ticketId) {
-                throw new Error("Cannot proceed: Missing required ticket data.");
-            }
-
-            
-            const initData = await apiFetch<InitTransactionResponse>('/api/payments/initialize-transaction', {
-                method: 'POST',
+        if (rawItems) {
+            try {
+                const items = JSON.parse(rawItems);
+                let totalQty = 0;
+                let sub = 0;
                 
-                body: JSON.stringify({
-                    email: guestData.email,
-                    name: guestData.name,
-                    ticketId: ticketId,
-                    quantity: quantity,
-                }),
-            });
-            
-            //  REDIRECT TO PAYSTACK
-            window.location.href = initData.authorizationUrl;
+                // Calculate summary from the full items list
+                items.forEach((item: any) => {
+                    totalQty += item.quantity;
+                    sub += item.quantity * item.ticket.price;
+                });
+                
+                setOrderItems(items);
+                setOrderTotalQuantity(totalQty);
+                setOrderSubtotal(sub);
+                
+                // Save eventId to session storage for resilience
+                sessionStorage.setItem('checkout_eventId', eventId!);
 
-        } catch (err: any) {
-            console.error('Payment initialization failed:', err);
-            setError(err.message || 'Failed to initialize payment. Please try again.');
-        } finally {
-            setIsLoading(false);
+            } catch (e) {
+                console.error("Error parsing checkout tickets:", e);
+                toast.error("Error loading ticket details.");
+                navigate(`/event-details/${eventId}`);
+            }
+        } else if (!rawItems) {
+            // If no tickets are found in storage, redirect to event details to re-select.
+            toast.error("No tickets selected. Please select tickets.");
+            navigate(`/event-details/${eventId}`);
         }
+        
+    }, [loadingAuth, navigate, eventId]); // Added dependencies for clarity and correctness
+
+    useEffect(() => {
+        if (loadingAuth) return;
+
+        const currentPath = window.location.pathname;
+        const requiredQuery = `?eventId=${eventId || ''}`; 
+
+        // Only enforce routing if we have eventId and ticket data is loaded
+        if (eventId && orderTotalQuantity > 0) {
+            
+            // Logged-in user on the wrong path? Redirect to /checkout.
+            if (isAuthenticated && currentPath !== '/checkout') {
+                navigate(`/checkout${requiredQuery}`);
+                return; 
+            } 
+            
+            // Guest user on the wrong path? Redirect to /guest-checkout.
+            if (!isAuthenticated && currentPath !== '/guest-checkout') {
+                navigate(`/guest-checkout${requiredQuery}`);
+                return;
+            }
+        }
+        
+        // Update form data when auth state changes (e.g., user logs in)
+        if (isAuthenticated && (formData.email !== user!.email || formData.name !== user!.fullName)) {
+            setFormData({
+                name: user!.fullName || '',
+                email: user!.email || '', 
+            });
+        }
+        
+        // If not authenticated, ensure form fields can be edited
+        if (!isAuthenticated && user === null) {
+            setFormData(prev => ({ ...prev, email: prev.email || '', name: prev.name || '' }));
+        }
+
+    }, [eventId, navigate, isAuthenticated, user, loadingAuth, orderTotalQuantity]);
+
+
+    // --- 3. HANDLER FOR FORM INPUTS ---
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Determine the button text and disability status
-    const buttonText = Number(quantity) > 0 
-        ? `Continue to Payment for ${Number(quantity)} Ticket${Number(quantity) > 1 ? 's' : ''}`
-        : 'Missing Ticket Data - Cannot Proceed';
-        
-    const isButtonDisabled = isLoading || Number(quantity) <= 0 || !!error;
-
     
+    const initiatePaystackPayment = async (e: React.FormEvent) => {
+        e.preventDefault(); // Stop default form submission
+
+        // Basic form validation
+        if (!formData.name || !formData.email || orderTotalQuantity === 0) {
+            toast.error("Please fill in your name and email.");
+            return;
+        }
+
+        const payload: TransactionPayload = {
+            email: formData.email,
+            name: formData.name,
+            tickets: orderItems.map(item => ({
+                ticketId: item.ticket._id,
+                quantity: item.quantity,
+                price: item.ticket.price 
+            })),
+        };
+        
+        setLoadingPayment(true);
+        try {
+            
+            const transactionRes = await apiFetch<{ authorizationUrl: string, reference: string }>('/api/payments/initialize-transaction', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            window.location.href = transactionRes.authorizationUrl;
+
+        } catch (error: any) {
+            console.error("Payment initiation failed:", error);
+            toast.error(error.message || "Failed to initiate payment. Please try again.");
+            if (eventId) {
+                navigate(`/event-details/${eventId}`); 
+            } else {
+                navigate('/');
+            }
+
+        } finally {
+            setLoadingPayment(false);
+        }
+    };
+    
+    
+    
+    
+    // Show a general loading spinner while AuthContext is fetching user data
+    if (loadingAuth || (orderTotalQuantity === 0 && !loadingPayment)) { 
+        //  show loading if Auth is busy OR if tickets haven't loaded yet.
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
+                 <Loader2 className="h-12 w-12 text-green-500 animate-spin" />
+                 <p className="ml-4 text-lg">Preparing Checkout...</p>
+             </div>
+        );
+    }
+    
+    // payment processing screen
+    if (loadingPayment) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-sky-950">
+                <div className="flex flex-col items-center p-8 bg-white rounded-xl shadow-2xl">
+                    <Loader2 className="h-12 w-12 text-green-500 animate-spin mb-4" />
+                    <h2 className="text-xl font-bold">Redirecting to Paystack...</h2>
+                    <p className="text-sky-950 mt-2">Do not close this window.</p>
+                </div>
+            </div>
+        );
+    }
+    
+    
+    //  RENDER THE FORM 
     return (
-        // 💡  Dark background
-        <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
-            <form 
-                onSubmit={handleSubmit} 
+        <div className="min-h-screen bg-white flex items-center justify-center p-4">
+            <form onSubmit={initiatePaystackPayment} className="w-full max-w-lg bg-sky-950 rounded-xl shadow-2xl p-8 space-y-6">
+                <h2 className="text-3xl font-black text-white mb-8">Confirm Your Purchase</h2>
                 
-                className="bg-gray-800 p-8 md:p-12 rounded-none shadow-2xl text-center max-w-lg w-full border border-green-700"
-            >
-                <h1 className="text-4xl font-extrabold mb-2 text-green-400">Guest Checkout</h1>
-                <p className="text-lg mb-8 text-gray-400">Please provide your details to secure your booking.</p>
-                
-                {error && (
-                    <div className="bg-red-900 border border-red-500 text-red-300 px-4 py-3 rounded-none relative mb-6 text-sm" role="alert">
-                        <span className="block sm:inline font-medium">{error}</span>
-                    </div>
-                )}
-                
-                <div className="space-y-4">
-                    <input 
-                        name="name"
-                        placeholder="Full Name" 
-                        value={guestData.name}
-                        onChange={handleChange}
+                {/*  Displays the accurate breakdown */}
+                <div className="border p-4 rounded-lg bg-gray-50">
+                    <h3 className="font-bold text-sky-950 mb-2">Order Details</h3>
+                    
+                    {/* Display itemized list */}
+                    {orderItems.map((item, index) => (
+                        <div key={index} className="flex justify-between text-sm text-sky-950">
+                            {/* Assuming item.ticket.name is available */}
+                            <span>{item.ticket.name} (x{item.quantity})</span> 
+                            <span>GHS {(item.quantity * item.ticket.price).toFixed(2)}</span>
+                        </div>
+                    ))}
+
+                    <div className="border-t pt-2 mt-2">
+                        {/* The total quantity now accurately reflects the summary */}
+                        <p className="font-medium text-sky-950">Total Tickets: {orderTotalQuantity}</p>
                         
-                        className="border-gray-700 bg-gray-700 text-white p-3 rounded-none w-full focus:ring-green-500 focus:border-green-500 transition duration-150" 
-                        disabled={isLoading}
-                    />
-                    <input 
-                        name="email"
-                        type="email"
-                        placeholder="Email Address (Required for Tickets)" 
-                        value={guestData.email}
+                        <p className="text-xl font-black text-green-600 mt-2">
+                            Total Payable: GHS {orderSubtotal.toFixed(2)}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Name Field */}
+                <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-white mb-2">Full Name</label>
+                    <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        value={formData.name}
                         onChange={handleChange}
-                         
-                        className="border-gray-700 bg-gray-700 text-white p-3 rounded-none w-full focus:ring-green-500 focus:border-green-500 transition duration-150" 
-                        disabled={isLoading}
-                    />
-                    <input 
-                        name="phone"
-                        type="tel"
-                        placeholder="Phone Number" 
-                        value={guestData.phone}
-                        onChange={handleChange}
-                        className="border-gray-700 bg-gray-700 text-white p-3 rounded-none w-full focus:ring-green-500 focus:border-green-500 transition duration-150" 
-                        disabled={isLoading}
+                        required
+                        className="w-full px-4 py-3 border bg-white text-sky-950 border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 "
+                        placeholder="Your full name"
                     />
                 </div>
-                
-                <button 
-                    type="submit"
-                    className="mt-8 bg-green-600 text-white px-8 py-3 rounded-none text-lg font-bold hover:bg-green-500 transition duration-150 w-full disabled:opacity-50 disabled:cursor-not-allowed tracking-wider"
-                    disabled={isButtonDisabled}
-                >
-                    {isLoading ? (
-                        <span className="flex items-center justify-center">
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Initializing Payment...
-                        </span>
-                    ) : (
-                        buttonText 
-                    )}
-                </button>
 
-                <p className="mt-6 text-sm text-gray-500">
-                    Already have an account? 
-                    <button type="button" onClick={() => {/* navigate to login */}} className="text-green-500 hover:text-green-400 font-medium ml-1">
-                        Log In
-                    </button>
-                </p>
+                {/* Email Field */}
+                <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-white mb-2">Email Address</label>
+                    <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg  focus:border-green-500 bg-white text-sky-950"
+                        placeholder="your@email.com"
+                        disabled={isAuthenticated}
+                    />
+                     {isAuthenticated && <p className="mt-1 text-xs text-white">Email cannot be changed while logged in.</p>}
+                </div>
+                
+                {/* Submit Button */}
+                <button
+                    type="submit"
+                    disabled={loadingPayment || orderTotalQuantity === 0} // Disable if no tickets
+                    className={`w-full text-white font-black text-xl py-4 rounded-lg transition shadow-lg ${
+                        loadingPayment || orderTotalQuantity === 0
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 transform hover:scale-[1.01]"
+                    }`}
+                >
+                    {loadingPayment ? "Processing..." : "Proceed To Grab Ticket"}
+                </button>
             </form>
         </div>
     );

@@ -74,6 +74,7 @@ function App() {
         <Route path="my-events" element={<MyEvents/>}/>
         <Route path="/organizer/events/:eventId/tickets" element={<TicketsList/>}/>
         
+        
         </Route>
       </Route>
 

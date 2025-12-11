@@ -3,7 +3,6 @@ import {
   Home,
   PlusCircle,
   Ticket,
-  BarChart3,
   Calendar,
   Settings,
 } from "lucide-react";
@@ -37,9 +36,6 @@ export default function Sidebar({ isMobile }: { isMobile?: boolean }) {
           <Calendar size={20} /> My Events
         </NavLink>
 
-        <NavLink className={linkClass} to="/organizer/sales">
-          <BarChart3 size={20} /> Sales & Reports
-        </NavLink>
 
         <NavLink className={linkClass} to="/organizer/settings">
           <Settings size={20} /> Settings
