@@ -222,10 +222,8 @@ export default function Hero() {
                     {/* Header  */}
                     <div className="mb-10 text-center">
                       <div>
-                        <h2 className="text-4xl md:text-5xl font-black text-black mb-2">
-                          Upcoming Events
-                        </h2>
-                        <p className="text-gray-800 text-lg">Swipe or scroll to explore</p>
+                        
+                        <p className="text-gray-900 text-4xl font-bold">Swipe to explore upcoming events.</p>
                       </div>
                     </div>
 

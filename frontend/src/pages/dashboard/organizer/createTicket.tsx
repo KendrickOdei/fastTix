@@ -3,8 +3,8 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Plus, Trash2, } from "lucide-react";
-import { useEvent } from "../../hooks/useEvents";
-import { apiFetch } from "../../utils/apiClient";
+import { useEvent } from "../../../hooks/useEvents";
+import { apiFetch } from "../../../utils/apiClient";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 

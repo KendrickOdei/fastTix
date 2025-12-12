@@ -84,7 +84,7 @@ const Navbar = () => {
   }, [isMenuOpen]);
 
   return (
-    <nav className="w-full  top-0 left-0 right-0 z-50 bg-green-800 p-4 shadow-md">
+    <nav className="w-full  top-0 left-0 right-0 z-50 bg-gray-900 p-4 shadow-md">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -185,7 +185,7 @@ const Navbar = () => {
         
 
         {/* Mobile Menu Icon */}
-        <div ref={menuRef} className="md:hidden relative flex gap-6">
+        <div ref={menuRef} className="md:hidden bg-gray-900 relative flex gap-6">
         <button onClick={() => setShowSearch(true)} className="text-white text-xl md:text-2xl ml-4 focus:outline-none">
           <FaSearch />
         </button>

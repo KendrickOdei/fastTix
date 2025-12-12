@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { apiFetch } from "../../utils/apiClient";
+import { apiFetch } from "../../../utils/apiClient";
 
 const EditEvent = () => {
   const { id } = useParams<{ id: string }>();

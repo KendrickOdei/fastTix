@@ -1,4 +1,4 @@
-import { Menu, Bell, User } from "lucide-react";
+import { Menu,  } from "lucide-react";
 
 export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
   return (
@@ -10,13 +10,13 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
       </button>
 
       {/* Title */}
-      <h2 className="text-lg font-semibold hidden md:block">Dashboard</h2>
+      <h2 className="text-lg text-gray-900 font-semibold hidden md:block">My Dashboard</h2>
 
       {/* Right icons */}
-      <div className="flex items-center gap-5">
+      {/* <div className="flex items-center gap-5">
         <Bell size={22} />
         <User size={22} />
-      </div>
+      </div> */}
     </header>
   );
 }

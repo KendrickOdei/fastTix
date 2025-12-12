@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import {useParams, Link} from "react-router-dom"
-import { apiFetch } from "../../utils/apiClient";
-import Ticket from "../../components/Ticket"
+import { apiFetch } from "../../../utils/apiClient";
+import Ticket from "../../../components/Ticket"
 
 
 interface TicketResponse {
