@@ -18,7 +18,7 @@ declare global {
         userName: string;
         fullName: string;
          organizationName: string;
-         role: 'user' | 'organizer';
+         role: 'attendee' | 'organizer';
          acceptedOrganizerTerms: boolean; 
     }
 
@@ -85,7 +85,7 @@ const login = async (identifier: string, password: string) => {
 
          setUser(response.user)
 
-        if (response.user.role === 'user') {
+        if (response.user.role === 'attendee') {
          toast.success(`Welcome ${response.user.userName}`)
          } else {
          toast.success(`Welcome ${response.user.organizationName || response.user.userName}`)

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import SelectCountryList from 'react-select-country-list';
 import OtpModal from '../components/OtpModal';
+import { toast } from 'react-toastify';
 
 interface FormDataInterface{
     email: string,
@@ -33,7 +34,7 @@ const FormDataObj: FormDataInterface = {
 }
 export default function Register() {
   const [step, setStep] = useState(1);
-  const [userType, setUserType] = useState<'user' | 'organizer'>('user');
+  const [userType, setUserType] = useState<'attendee' | 'organizer'>('attendee');
   const [isLoading, setIsLoading] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -94,7 +95,7 @@ export default function Register() {
     let hasError = false;
     let errorMessages = { ...errors };
 
-    if (userType === 'user') {
+    if (userType === 'attendee') {
       if (!formData.fullName) {
         errorMessages.fullName = 'This field is required.';
         hasError = true;
@@ -154,8 +155,8 @@ export default function Register() {
       // Create user with isVerified: false
       
       const payload = {
-        fullName: userType === 'user' ? formData.fullName : undefined,
-        userName: userType === 'user' ? formData.userName: undefined,
+        fullName: userType === 'attendee' ? formData.fullName : undefined,
+        userName: userType === 'attendee' ? formData.userName: undefined,
         email: formData.email ,
         password: formData.password,
         role: userType,
@@ -187,19 +188,19 @@ export default function Register() {
 
   const handleFinalSubmit = async () => {
     if (!isEmailVerified) {
-      alert('Please verify your email first.');
+      toast.error('Please verify your email first.');
       return;
     }
 
     try {
       setIsLoading(true);
       // Since user is already created, we could update or just confirm
-      alert('Registration completed successfully!');
+      toast.success('Registration completed successfully!');
       // Optionally: Redirect or clear form
       setFormData({
         email: '',
         phone: '',
-        userType: 'user',
+        userType: 'attendee',
         password: '',
         confirmPassword: '',
         fullName: '',
@@ -220,35 +221,35 @@ export default function Register() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Left Panel */}
-      <div className="hidden lg:flex flex-col justify-center w-1/2 bg-green-900 text-white px-12">
+      <div className="hidden lg:flex flex-col justify-center w-1/2 bg-gray-900 text-white px-12">
         <h1 className="text-4xl font-bold mb-4">Join Fastix Today!</h1>
         <p className="text-lg">
           Register to explore thrilling events happening near you. Whether you're
-          hosting or attending — we’ve got you covered!
+          hosting or attending, we’ve got you covered!
         </p>
       </div>
 
       {/* Right Panel */}
       <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <h2 className="text-2xl font-bold mb-6 text-center">Create an Account</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">Create an Account</h2>
 
         {step === 1 && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium">Registering as</label>
+              <label className="block text-sm font-bold text-gray-900 py-2">Select "Organizer" If You Are Registering As One!</label>
               <select
                 name="userType"
                 value={userType}
                 onChange={(e) => {
-                  setUserType(e.target.value as 'user' | 'organizer');
+                  setUserType(e.target.value as 'attendee' | 'organizer');
                   setFormData((prev) => ({
                     ...prev,
                     userType: e.target.value,
                   }));
                 }}
-                className="w-full border rounded px-3 py-2"
+                className="w-full border border-gray-900 rounded px-3 py-2"
               >
-                <option value="user">User</option>
+                <option value="attendee">Attendee</option>
                 <option value="organizer">Organizer</option>
               </select>
             </div>
@@ -327,7 +328,7 @@ export default function Register() {
               </>
             )}
 
-            {userType === 'user' && (
+            {userType === 'attendee' && (
               <>
                 <input
                   type="text"
@@ -402,7 +403,7 @@ export default function Register() {
               </>
             )}
             <div>
-              <label className="block text-sm font-medium">Country</label>
+              <label className="block text-sm font-bold">Country</label>
               <select
                 name="country"
                 value={formData.country}
@@ -423,7 +424,7 @@ export default function Register() {
 
             <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-4 mt-4">
               <Link to="/login" className="w-full sm:w-auto">
-                <button className="text-green-600 hover:text-green-800 w-full sm:w-auto font-bold">
+                <button className="text-gray-900 hover:text-green-800 w-full sm:w-auto font-bold">
                   Back
                 </button>
               </Link>
@@ -431,7 +432,7 @@ export default function Register() {
               <button
                 onClick={handleNext}
                 disabled={isLoading}
-                className="bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full sm:w-auto flex justify-center items-center gap-2"
+                className="bg-gray-900 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded w-full sm:w-auto flex justify-center items-center gap-2"
               >
                 {isLoading && (
                   <svg
@@ -487,7 +488,7 @@ export default function Register() {
               disabled={!isEmailVerified}
               className={`w-full py-2 px-4 rounded text-white ${
                 isEmailVerified
-                  ? 'bg-green-800 hover:bg-green-600'
+                  ? 'bg-gray-900 hover:bg-green-600'
                   : 'bg-gray-400 cursor-not-allowed'
               }`}
             >

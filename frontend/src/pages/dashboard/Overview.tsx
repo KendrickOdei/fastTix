@@ -1,7 +1,7 @@
 // DashboardReportPage.tsx
 
 import React, { useEffect, useState } from "react";
-import { DollarSign, Ticket, Calendar, TrendingUp } from "lucide-react";
+import { DollarSign, Ticket, Calendar,  } from "lucide-react";
 import { apiFetch } from "../../utils/apiClient";
 import { Loader2 } from "lucide-react";
 import { format } from "date-fns";
@@ -95,12 +95,7 @@ const Overview: React.FC = () => {
                     color="bg-yellow-600 hover:bg-yellow-700" 
                 />
                
-                <StatCard 
-                    title="Upcoming Events" 
-                    value= {data.upcomingEvents.length}
-                    icon={<TrendingUp className="w-8 h-8 opacity-50" />} 
-                    color="bg-purple-600 hover:bg-purple-700" 
-                />
+                
             </div>
 
             {/* UPCOMING EVENTS LIST */}

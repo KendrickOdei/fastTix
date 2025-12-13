@@ -4,7 +4,7 @@ export const registerSchema = z.object({
   fullName: z.string().optional(),
   userName: z.string().optional(),
   email: z.email('Enter valid email address'),
-  role: z.enum(['user', 'organizer']),
+  role: z.enum(['attendee', 'organizer','admin']),
   password: z.string()
     .min(6, 'Password must be at least 6 characters')
     .regex(/[0-9]/, 'Password must contain at least one number')
@@ -14,7 +14,7 @@ export const registerSchema = z.object({
   location: z.string().optional(),
   isVerified: z.boolean().default(false),
 }).superRefine((data, ctx) => {
-  if (data.role === 'user') {
+  if (data.role === 'attendee') {
     if (!data.fullName) {
       ctx.addIssue({
         path: ['fullName'],

@@ -14,8 +14,8 @@ export const register = asyncHandler(async(req:Request,res:Response,next:NextFun
     if(userExists) throw new AppError('user already exists', 400)
 
     const newUser = new User({
-        ...(role === 'user' && {fullName}),
-        ...(role === 'user' && {userName}), 
+        ...(role === 'attendee' && {fullName}),
+        ...(role === 'attendee' && {userName}), 
         email: email.toLowerCase(),
         password,
         role,
