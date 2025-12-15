@@ -165,8 +165,14 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
     
 
     
-    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate('ticketId')
-                                                                                      .populate('eventId')
+    const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate({
+                                                                                         path: 'tickets.ticketId',
+                                                                                         select: 'type price eventId', // Get only necessary fields from the Ticket model
+                                                                                          populate: {
+                                                                                         path: 'eventId', // Then populate the Event details from the Ticket
+                                                                                          select: 'title date venue image',
+                                                                                            }
+                                                                                          })
                                                                                        
                                                                                            
 
@@ -198,27 +204,28 @@ for (const item of purchasedTicket.tickets) {
         }
       });
     }
-
-   const totalQuantity = purchasedTicket.tickets.reduce((sum, t) => sum + t.quantity, 0);
   
   
   try {
-    const pdfPayload = {
-        purchaseCode: purchasedTicket.purchaseCode,
-        eventTitle: (purchasedTicket.eventId as any)?.title || 'Event',
-        eventDate: (purchasedTicket.eventId as any)?.date || new Date().toISOString(),
-        ticketType: (purchasedTicket as any).ticketType || 'Regular',
-        ticketPrice: purchasedTicket.totalAmount/totalQuantity,
-        quantity: totalQuantity,
-        name:
-        purchasedTicket.name || "Valued Customer",
-        email:  purchasedTicket.email ,
-        venue: (purchasedTicket.eventId as any)?.venue || 'venue',
-        eventImageUrl:
-        (purchasedTicket.eventId as any)?.image || undefined
+      const ticketPayloads = purchasedTicket.tickets.map((item) => {
+   // The Ticket and Event details are nested inside item.ticketId due to population
+       const ticketDetails = item.ticketId as any; // Cast for easier access to populated fields
+       const eventDetails = ticketDetails.eventId;
 
-    }
-    await sendTicketEmail(pdfPayload)
+       return {
+            purchaseCode: purchasedTicket.purchaseCode,
+            eventTitle: eventDetails?.title || 'Event',
+            eventDate: eventDetails?.date || new Date().toISOString(),
+            ticketType: ticketDetails.type || 'Regular',
+            ticketPrice: ticketDetails.price, // Use the specific price for this type
+            quantity: item.quantity, // Use the specific quantity for this type
+            name: purchasedTicket.name || "Valued Customer",
+            email: purchasedTicket.email,
+            venue: eventDetails?.venue || 'Venue',
+            eventImageUrl: eventDetails?.image || undefined
+          }
+      });
+    await sendTicketEmail(ticketPayloads)
 
     purchasedTicket.status = 'success';
 

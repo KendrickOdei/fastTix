@@ -158,7 +158,7 @@ export async function generateTicketPdf(
         .fillColor("#111827")
         .text(payload.venue, rightColX);
 
-      doc.moveDown(6);
+      doc.moveDown(2);
 
       // qr code
       const qrContainerSize = 330;
