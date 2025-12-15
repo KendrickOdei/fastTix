@@ -205,11 +205,19 @@ for (const item of purchasedTicket.tickets) {
       });
     }
   
-  
+   purchasedTicket.status = 'success';
+
   try {
       const ticketPayloads = purchasedTicket.tickets.map((item) => {
    // The Ticket and Event details are nested inside item.ticketId due to population
        const ticketDetails = item.ticketId as any; // Cast for easier access to populated fields
+
+       if (!ticketDetails || !ticketDetails.eventId) { 
+                // If data is missing (e.g., deleted ticket), skip this one
+                console.error("Skipping ticket fulfillment due to missing populated data for item:", item);
+                return null;
+            }
+
        const eventDetails = ticketDetails.eventId;
 
        return {
@@ -224,10 +232,11 @@ for (const item of purchasedTicket.tickets) {
             venue: eventDetails?.venue || 'Venue',
             eventImageUrl: eventDetails?.image || undefined
           }
-      });
+      }).filter((p): p is any => p !== null);
+
+       
     await sendTicketEmail(ticketPayloads)
 
-    purchasedTicket.status = 'success';
 
     await purchasedTicket.save()
     console.log(`Ticket email sent for order ${reference}`)
@@ -250,7 +259,7 @@ export const checkOrderStatus = asyncHandler(async (req: Request, res: Response)
     //  find the purchased ticket record
     const ticketRecord = await PurchasedTicket.findOne({ purchaseCode: ref })
         .populate('eventId', 'title date') 
-        .select('purchaseCode quantity totalAmount eventId qrCode status'); 
+        .select('purchaseCode tickets quantity totalAmount eventId qrCode status'); 
 
     if (!ticketRecord) {
         

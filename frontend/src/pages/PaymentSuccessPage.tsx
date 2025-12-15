@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { apiFetch } from '../utils/apiClient'; // Your API utility
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Loader } from 'lucide-react';
 
 interface OrderStatusData {
     reference: string;
@@ -36,60 +36,85 @@ export default function PaymentSuccess() {
                     return;
                 }
 
+                const POLLING_INTERVAL = 4000; // 4 seconds
+                let intervalId: NodeJS.Timeout | null = null;
                 let attempts = 0;
                 const maxAttempts = 20; 
 
-                const fetchStatus = async () => {
-                    try {
-                        const res = await apiFetch<OrderStatusResponse>(
-                            `/api/payments/status?ref=${paystackReference}`
-                        );
+               const fetchStatus = async () => {
+            // Stop polling if max attempts reached or status is final
+            if (attempts >= maxAttempts || status === 'success' || status === 'failed' || status === 'not_found') {
+                if (intervalId) clearInterval(intervalId);
+                if (attempts >= maxAttempts && status !== 'success') {
+                    setStatus('failed');
+                    setMessage('Taking longer than usual. Please check your email in 2 minutes.');
+                }
+                return;
+            }
 
-                        // SUCCESS → stop polling
-                        if (res.status === 'success') {
-                            setStatus('success');
-                            setMessage(res.message);
-                            if (res.data) setOrderData(res.data);
-                            return;
-                        }
+            attempts++;
 
-                        // Still pending  keep trying
-                        if (res.status === 'pending' && attempts < maxAttempts) {
-                            attempts++;
-                            setMessage('Generating your tickets... almost done!');
-                            setTimeout(fetchStatus, 4000); 
-                            return;
-                        }
+            try {
+                const res = await apiFetch<OrderStatusResponse>(
+                    `/api/payments/status?ref=${paystackReference}`
+                );
 
-                        // Any other state (failed, not_found)
-                        setStatus(res.status);
-                        setMessage(res.message);
+                //  Stop polling and update UI
+                if (res.status === 'success') {
+                    if (intervalId) clearInterval(intervalId); // Stop the loop
+                    setStatus('success');
+                    setMessage(res.message);
+                    if (res.data) setOrderData(res.data);
+                    return;
+                }
 
-                    } catch (err) {
-                        if (attempts < maxAttempts) {
-                            attempts++;
-                            setTimeout(fetchStatus, 5000);
-                        } else {
-                            setStatus('failed');
-                            setMessage('Taking longer than usual. Please check your email in 2 minutes.');
-                        }
-                    }
-                };
+             
+                if (res.status === 'pending') {
+                    setStatus('pending');
+                    setMessage(res.message); // Use the message provided by the backend
+                    return;
+                }
 
-                fetchStatus();
-            }, [paystackReference]);
+                if (res.status === 'failed' || res.status === 'not_found') {
+                    if (intervalId) clearInterval(intervalId); // Stop the loop
+                    setStatus(res.status);
+                    setMessage(res.message);
+                    return;
+                }
+                
+            } catch (err) {
+                // Ignore API fetch errors during polling, let the loop continue until maxAttempts
+                console.error("Polling API failed:", err);
+                setMessage(`Connection error. Retrying... (Attempt ${attempts}/${maxAttempts})`);
+            }
+        };
+
+        // Start the polling loop
+        intervalId = setInterval(fetchStatus, POLLING_INTERVAL);
+        fetchStatus(); // Initial call immediately
+
+        // 2. Cleanup function to stop the interval when the component unmounts
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
+
+    }, [paystackReference]);
 
     //  Content Rendering 
     const renderContent = () => {
         switch (status) {
             case 'loading':
+            case 'pending': // Handle both initial load and waiting states here
                 return (
                     <>
-                        <Clock size={48} className="text-blue-500 animate-spin mb-4" />
-                        <h2 className="text-3xl font-bold text-gray-800">Verifying Payment...</h2>
+                        <Loader size={48} className="text-yellow-500 animate-spin mb-4" />
+                        <h2 className="text-3xl font-bold text-gray-800">
+                            {status === 'loading' ? 'Verifying Payment...' : 'Processing Tickets...'}
+                        </h2>
                         <p className="text-lg text-gray-600 mt-2">{message}</p>
                     </>
-                );
+                  );
+               
             case 'success':
                 return (
                     <>
@@ -107,17 +132,7 @@ export default function PaymentSuccess() {
                         )}
                     </>
                 );
-            case 'pending':
-                return (
-                    <>
-                        <Clock size={64} className="text-yellow-500 mb-4" />
-                        <h2 className="text-4xl font-bold text-yellow-700">Almost there!</h2>
-                        <p className="text-xl text-gray-700 mt-2">
-                            We're generating your tickets right now...
-                        </p>
-                        <p className="mt-4 text-md text-gray-600">This usually takes 5-15 seconds</p>
-                    </>
-                );
+            
             case 'failed':
             case 'not_found':
             default:
