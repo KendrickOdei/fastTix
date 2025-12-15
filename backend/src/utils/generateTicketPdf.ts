@@ -1,4 +1,4 @@
-import PDFDocument from "pdfkit"; // 1. REVERTED TO DEFAULT IMPORT for the constructor value
+import PDFDocument from "pdfkit";
 import { PassThrough } from "stream";
 import { fetchImageBuffer } from "./fetchImageBuffer";
 import { generateQrPngBuffer } from "./generateQRCode";
@@ -7,7 +7,7 @@ import { format } from "date-fns";
 export interface TicketPdfPayload {
   purchaseCode: string;
   eventTitle: string;
-  eventDate: string; 
+  eventDate: string; // ISO string
   ticketType: string;
   ticketPrice: number;
   quantity: number;
@@ -17,21 +17,18 @@ export interface TicketPdfPayload {
   eventImageUrl?: string;
 }
 
-const TICKET_WIDTH = 380; 
-const TICKET_HEIGHT = 650;
+// --- Drawing Constants for the Ticket Block ---
+const TICKET_WIDTH = 380;
+// Increased height to 720 points to ensure all content fits on one page
+const TICKET_HEIGHT = 720; 
 const TICKET_RADIUS = 16;
 const TICKET_X = (595.28 - TICKET_WIDTH) / 2;
 
-
 function getTicketFillColor() {
     return {
-        // Main brand color (Blue for badges/highlights)
         primary: "#2563eb", // blue-600
-        // Light background for info boxes
         secondary: "#e0f2fe", // light blue for backgrounds
-        // Dark text color
         text: "#1f2937", 
-        // Lighter gray for labels/instructions
         lightText: "#6b7280" 
     }
 }
@@ -42,15 +39,13 @@ export async function generateTicketPdf(
 ): Promise<Buffer> {
   return new Promise<Buffer>(async (resolve, reject) => {
     try {
-      //  Setup Document
-      const doc = new PDFDocument({ // Uses the default imported constructor
+      // 1. Setup Document
+      const doc = new PDFDocument({
         size: "A4",
         margin: 0, 
       });
 
       const stream = new PassThrough();
-
-      
       const chunks: Buffer[] = [];
 
       stream.on("data", (chunk) => chunks.push(chunk));
@@ -62,7 +57,7 @@ export async function generateTicketPdf(
       const colors = getTicketFillColor();
       const initialY = 60; 
 
-      /* TICKET DRAWING LOOP  */
+      /* ================= TICKET DRAWING LOOP (Creates a stack effect) ================= */
       
       const ticketsToDraw = Math.min(payload.quantity, 3); 
 
@@ -82,13 +77,12 @@ export async function generateTicketPdf(
             .stroke("#d1d5db")
             .restore();
 
-          // We only draw detailed content on the topmost ticket (i=0)
           if (i === 0) {
               await drawTicketContent(doc, payload, TICKET_X, currentY, TICKET_WIDTH, TICKET_HEIGHT, colors);
           }
       }
 
-      /* END TICKET DRAWING LOOP  */
+      /* ================= END TICKET DRAWING LOOP ================= */
 
       doc.y = initialY + TICKET_HEIGHT + 30;
       doc.end();
@@ -100,12 +94,8 @@ export async function generateTicketPdf(
 }
 
 
-/**
- * Helper function to draw all content onto a single ticket block.
- * Uses the ticket's container coordinates (x, y, width, height) for relative positioning.
- */
 async function drawTicketContent(
-    doc: typeof PDFDocument.prototype, 
+    doc: typeof PDFDocument.prototype,
     payload: TicketPdfPayload, 
     x: number, 
     y: number, 
@@ -117,7 +107,7 @@ async function drawTicketContent(
     let currentY = y + PADDING;
     const contentWidth = width - 2 * PADDING;
     
-    //  HEADER IMAGE 
+    // --- 1. HEADER IMAGE ---
     const imageHeight = 120;
     if (payload.eventImageUrl) {
       const imageBuffer = await fetchImageBuffer(payload.eventImageUrl);
@@ -138,7 +128,7 @@ async function drawTicketContent(
     currentY += imageHeight + 20; 
 
     
-    //  EVENT TITLE 
+    // --- 2. EVENT TITLE ---
     doc
       .font("Helvetica-Bold")
       .fontSize(24)
@@ -147,7 +137,8 @@ async function drawTicketContent(
     
     currentY = doc.y + 12;
 
-    //  TICKET TYPE BADGE 
+    // --- 3. TICKET TYPE BADGE (Fixed visibility) ---
+    // Badge text now clearly separates the ticket type.
     const badgeText = `${payload.ticketType.toUpperCase()} ${payload.quantity > 1 ? `(${payload.quantity} Tickets)` : ''} • GHS ${payload.ticketPrice.toFixed(2)}`;
     const badgeHeight = 30;
     const badgeRadius = 15;
@@ -172,10 +163,11 @@ async function drawTicketContent(
       );
     currentY += badgeHeight + 20;
 
-    //  TICKET HOLDER & REFERENCE BOX 
-    const holderBoxHeight = 60;
+    // --- 4. TICKET HOLDER BOX (Fixed Alignment) ---
+    // Simplified to only hold the Ticket Holder name. Purchase code is moved below the QR.
+    const holderBoxHeight = 70; 
     doc
-      .roundedRect(x + PADDING, currentY, contentWidth, holderBoxHeight, 8)
+      .roundedRect(x + PADDING, currentY, contentWidth, holderBoxHeight, 8) // Box now correctly fills full contentWidth
       .fill(colors.secondary);
 
     // Holder Name
@@ -187,27 +179,14 @@ async function drawTicketContent(
 
     doc
       .font("Helvetica-Bold")
-      .fontSize(14)
+      .fontSize(16)
       .fillColor(colors.text)
-      .text(payload.name, x + PADDING + 12, currentY + 24);
+      .text(payload.name, x + PADDING + 12, currentY + 30);
       
-    // Purchase Code
-    doc
-      .fillColor(colors.lightText)
-      .fontSize(10)
-      .font("Helvetica")
-      .text("Purchase Reference", x + PADDING + contentWidth/2 + 12, currentY + 8);
-
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(14)
-      .fillColor(colors.text)
-      .text(payload.purchaseCode, x + PADDING + contentWidth/2 + 12, currentY + 24);
-
     currentY += holderBoxHeight + 20;
 
 
-    //  DATE & VENUE 
+    // --- 5. DATE & VENUE (Two Columns) ---
     const colWidth = contentWidth / 2;
     const rightColX = x + PADDING + colWidth;
     const eventDate = new Date(payload.eventDate);
@@ -215,21 +194,25 @@ async function drawTicketContent(
     const dateStr = format(eventDate, "EEE, MMM d, yyyy");
     const timeStr = format(eventDate, "h:mm a");
     
-    // Date & Time
-    doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Date & Time", x + PADDING, currentY);
+    const detailsStartY = currentY; 
+
+    // Column 1: Date & Time
+    doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Date & Time", x + PADDING, detailsStartY);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(colors.text).text(`${dateStr}`, x + PADDING);
     doc.font("Helvetica").fontSize(12).text(`${timeStr}`, x + PADDING);
+    const dateColEndY = doc.y; 
 
-    //  Venue
-    const venueY = currentY;
-    doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Venue", rightColX, venueY);
-    doc.font("Helvetica-Bold").fontSize(14).fillColor(colors.text).text(payload.venue, rightColX);
+    // Column 2: Venue (Start drawing at the same Y as the Date header)
+    doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Venue", rightColX, detailsStartY);
+    doc.font("Helvetica-Bold").fontSize(14).fillColor(colors.text).text(payload.venue, rightColX, detailsStartY + 15);
+    const venueColEndY = doc.y;
 
-    currentY = doc.y + 20;
+    currentY = Math.max(dateColEndY, venueColEndY) + 20;
+    doc.y = currentY; 
 
 
-    //  QR CODE 
-    const qrSize = 150;
+    // --- 6. QR CODE (Increased Size) ---
+    const qrSize = 180; // Increased QR size from 150 to 180
     const qrX = x + width / 2 - qrSize / 2;
     const qrY = currentY;
 
@@ -249,9 +232,21 @@ async function drawTicketContent(
       fit: [qrSize, qrSize],
     });
 
-    currentY += qrSize + 30;
+    currentY += qrSize + 20; // Update currentY based on new qrSize
     
-    //  FOOTER / INSTRUCTIONS 
+    // --- 7. PURCHASE CODE (Dedicated Section) ---
+    doc
+      .font("Helvetica-Bold")
+      .fontSize(12)
+      .fillColor(colors.text)
+      .text(`Reference: ${payload.purchaseCode}`, x + PADDING, currentY, {
+        width: contentWidth,
+        align: "center",
+      });
+
+    currentY = doc.y + 12;
+    
+    // --- 8. FOOTER / INSTRUCTIONS ---
     doc
       .font("Helvetica")
       .fontSize(9)
