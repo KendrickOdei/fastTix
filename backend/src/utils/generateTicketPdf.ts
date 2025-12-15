@@ -19,6 +19,7 @@ export interface TicketPdfPayload {
 
 // --- Drawing Constants for the Ticket Block ---
 const TICKET_WIDTH = 380;
+// Increased height to 720 points to ensure all content fits on one page
 const TICKET_HEIGHT = 720; 
 const TICKET_RADIUS = 16;
 const TICKET_X = (595.28 - TICKET_WIDTH) / 2;
@@ -127,7 +128,7 @@ async function drawTicketContent(
     currentY += imageHeight + 20; 
 
     
-    // --- 2. EVENT TITLE ---
+    
     doc
       .font("Helvetica-Bold")
       .fontSize(24)
@@ -136,12 +137,11 @@ async function drawTicketContent(
     
     currentY = doc.y + 12;
 
-    // --- 3. TICKET TYPE BADGE (Fixed visibility) ---
-    // Badge only shows the ticket type name (e.g., REGULAR, VIP)
-    const typeText = payload.ticketType.toUpperCase() || 'TICKET'; 
+    
+    const badgeText = `${payload.ticketType.toUpperCase()} ${payload.quantity > 1 ? `(${payload.quantity} Tickets)` : ''} • GHS ${payload.ticketPrice.toFixed(2)}`;
     const badgeHeight = 30;
     const badgeRadius = 15;
-    const badgeWidth = doc.widthOfString(typeText) + 30;
+    const badgeWidth = doc.widthOfString(badgeText) + 30;
 
     doc
       .roundedRect(x + PADDING, currentY, badgeWidth, badgeHeight, badgeRadius)
@@ -152,7 +152,7 @@ async function drawTicketContent(
       .font("Helvetica-Bold")
       .fontSize(10)
       .text(
-        typeText,
+        badgeText,
         x + PADDING,
         currentY + 10,
         {
@@ -160,27 +160,13 @@ async function drawTicketContent(
           align: "center",
         }
       );
+    currentY += badgeHeight + 20;
 
-    currentY += badgeHeight + 5;
-
-    // Display Price and Quantity directly below the badge
-    const priceDisplay = payload.ticketPrice === 0 ? "FREE" : `GHS ${payload.ticketPrice.toFixed(2)}`;
-    const quantityText = payload.quantity > 1 ? `(${payload.quantity} Tickets) ` : '';
-    
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(12)
-      .fillColor(colors.text)
-      .text(`${quantityText}${priceDisplay}`, x + PADDING, currentY);
-
-    currentY = doc.y + 15; // Advance Y past the price/quantity text
-
-
-    // --- 4. TICKET HOLDER & PURCHASE REFERENCE BOX (Full Width Fixed) ---
+    // --- 4. TICKET HOLDER BOX (Fixed Alignment) ---
+    // Simplified to only hold the Ticket Holder name. Purchase code is moved below the QR.
     const holderBoxHeight = 70; 
     doc
-      // Box is drawn first to ensure full width
-      .roundedRect(x + PADDING, currentY, contentWidth, holderBoxHeight, 8) 
+      .roundedRect(x + PADDING, currentY, contentWidth, holderBoxHeight, 8) // Box now correctly fills full contentWidth
       .fill(colors.secondary);
 
     // Holder Name
@@ -215,7 +201,7 @@ async function drawTicketContent(
     doc.font("Helvetica").fontSize(12).text(`${timeStr}`, x + PADDING);
     const dateColEndY = doc.y; 
 
-    // Column 2: Venue
+    // Column 2: Venue (Start drawing at the same Y as the Date header)
     doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Venue", rightColX, detailsStartY);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(colors.text).text(payload.venue, rightColX, detailsStartY + 15);
     const venueColEndY = doc.y;
@@ -224,8 +210,8 @@ async function drawTicketContent(
     doc.y = currentY; 
 
 
-    // --- 6. QR CODE ---
-    const qrSize = 180; 
+    // --- 6. QR CODE (Increased Size) ---
+    const qrSize = 180; // Increased QR size from 150 to 180
     const qrX = x + width / 2 - qrSize / 2;
     const qrY = currentY;
 
@@ -245,9 +231,9 @@ async function drawTicketContent(
       fit: [qrSize, qrSize],
     });
 
-    currentY += qrSize + 20;
+    currentY += qrSize + 20; // Update currentY based on new qrSize
     
-    // --- 7. PURCHASE REFERENCE (Dedicated Section) ---
+    // --- 7. PURCHASE CODE (Dedicated Section) ---
     doc
       .font("Helvetica-Bold")
       .fontSize(12)

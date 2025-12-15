@@ -41,7 +41,7 @@ export async function sendTicketEmail(payloads: TicketPdfPayload[]) {
             <p><strong>Date:</strong> ${new Date(primaryPayload.eventDate).toDateString()}</p>
             <p><strong>Purchase Code:</strong> ${primaryPayload.purchaseCode}</p>
             <br/>
-            <p>We have attached **${payloads.length} separate PDF files** containing your ${totalQuantity} tickets (one PDF for each ticket type purchased). Please check the attachments below.</p>
+            <p>We have attached ${payloads.length} separate PDF files containing your ${totalQuantity} tickets (one PDF for each ticket type purchased). Please check the attachments below.</p>
             <p>See you at the event!</p>
         `,
         attachments: attachments,
