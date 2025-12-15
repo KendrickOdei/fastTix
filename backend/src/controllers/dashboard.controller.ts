@@ -56,20 +56,7 @@ confirmedSales.forEach(order => {
     });
   }
 
-  // OLD STRUCTURE (single ticket)
-  else {
-    const quantity = order.quantity || 0;
-
-    // find ticket price
-    const ticket = allTickets.find(
-      (t:any) => t._id.toString() === order.ticketId?.toString()
-    );
-
-    const price = ticket?.price || 0;
-
-    totalTicketsSold += quantity;
-    totalRevenue += quantity * price;
-  }
+ 
 });
 
 
@@ -95,11 +82,8 @@ confirmedSales.forEach(order => {
                 // If it's the new array, sum up quantities from all items in the array
            return sum + order.tickets.reduce((itemSum, item) => itemSum + item.quantity, 0);
             }
-            // Check for OLD STRUCTURE 
-            else if (order.quantity) {
-                // If it's the old structure, return the quantity directly
-                return sum + (order.quantity as number); 
-            }
+            
+            
             // Default 0 if no sales data is found
             return sum; 
          }, 0);

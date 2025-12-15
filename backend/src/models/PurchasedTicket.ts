@@ -1,4 +1,6 @@
 import mongoose, { Document, Types, Schema } from "mongoose";
+import { ITicket } from "./ticket";
+import { IEvent } from "./event";
 
 export interface IPurchasedTicket extends Document {
   _id: Types.ObjectId;
@@ -7,14 +9,10 @@ export interface IPurchasedTicket extends Document {
   email: string;
   eventId: Types.ObjectId;
 
-  ticketId: Types.ObjectId;
-  quantity: number;
 
-
-  
   // NEW: Multiple ticket types in one order
   tickets: {
-    ticketId: Types.ObjectId;
+    ticketId: Types.ObjectId | (ITicket & { eventId: Types.ObjectId | IEvent });
     quantity: number;
     price: number;
   }[];
@@ -31,8 +29,6 @@ const PurchasedTicketSchema: Schema<IPurchasedTicket> = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
   eventId: { type: Schema.Types.ObjectId, ref: "Event", required: true },
 
-  ticketId: { type: Schema.Types.ObjectId, ref: "Ticket" },
-  quantity: { type: Number, default: 1 },
   
   // THIS IS THE KEY CHANGE — ARRAY OF TICKETS
   tickets: [{

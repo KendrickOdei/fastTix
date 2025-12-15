@@ -133,7 +133,7 @@ export default function CreateTicket() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label>Ticket Name (e.g. VIP, Early Bird)</label>
+                  <label>Ticket Type (e.g. VIP, Early Bird)</label>
                   <input
                     {...register(`tickets.${index}.name`)}
                     placeholder="VIP Access"

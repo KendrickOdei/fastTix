@@ -166,13 +166,12 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
 
     
     const purchasedTicket = await PurchasedTicket.findOne({ purchaseCode: reference }).populate({
-                                                                                         path: 'tickets.ticketId',
-                                                                                         select: 'type price eventId', // Get only necessary fields from the Ticket model
-                                                                                          populate: {
-                                                                                         path: 'eventId', // Then populate the Event details from the Ticket
-                                                                                          select: 'title date venue image',
-                                                                                            }
-                                                                                          })
+                                                                                                path: 'tickets.ticketId',
+                                                                                                populate: {
+                                                                                                    path: 'eventId',
+                                                                                                    model: 'Event'
+                                                                                                }
+                                                                                                });
                                                                                        
                                                                                            
 
@@ -208,9 +207,9 @@ for (const item of purchasedTicket.tickets) {
    purchasedTicket.status = 'success';
 
   try {
-      const ticketPayloads = purchasedTicket.tickets.map((item) => {
+      const ticketPayloads = purchasedTicket.tickets.map((item: any) => {
    // The Ticket and Event details are nested inside item.ticketId due to population
-       const ticketDetails = item.ticketId as any; // Cast for easier access to populated fields
+       const ticketDetails = item.ticketId 
 
        if (!ticketDetails || !ticketDetails.eventId) { 
                 // If data is missing (e.g., deleted ticket), skip this one
@@ -222,10 +221,10 @@ for (const item of purchasedTicket.tickets) {
 
        return {
             purchaseCode: purchasedTicket.purchaseCode,
-            eventTitle: eventDetails?.title || 'Event',
+            eventTitle: eventDetails.title || 'Event',
             eventDate: eventDetails?.date || new Date().toISOString(),
-            ticketType: ticketDetails?.name ,
-            ticketPrice: ticketDetails.price, // Use the specific price for this type
+            ticketType: ticketDetails?.name || 'Ticket' ,
+            ticketPrice: item.price, // Use the specific price for this type
             quantity: item.quantity, // Use the specific quantity for this type
             name: purchasedTicket.name || "Valued Customer",
             email: purchasedTicket.email,
