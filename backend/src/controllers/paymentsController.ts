@@ -224,7 +224,7 @@ for (const item of purchasedTicket.tickets) {
             purchaseCode: purchasedTicket.purchaseCode,
             eventTitle: eventDetails?.title || 'Event',
             eventDate: eventDetails?.date || new Date().toISOString(),
-            ticketType: ticketDetails.name ,
+            ticketType: ticketDetails?.name ,
             ticketPrice: ticketDetails.price, // Use the specific price for this type
             quantity: item.quantity, // Use the specific quantity for this type
             name: purchasedTicket.name || "Valued Customer",
