@@ -128,7 +128,7 @@ async function drawTicketContent(
     currentY += imageHeight + 20; 
 
     
-    // --- 2. EVENT TITLE ---
+    //  EVENT TITLE 
     doc
       .font("Helvetica-Bold")
       .fontSize(24)
@@ -137,12 +137,11 @@ async function drawTicketContent(
     
     currentY = doc.y + 12;
 
-    // --- 3. TICKET TYPE BADGE (Fixed visibility) ---
     // Badge text now clearly separates the ticket type.
     const badgeText = `${payload.ticketType.toUpperCase()} ${payload.quantity > 1 ? `(${payload.quantity} Tickets)` : ''} • GHS ${payload.ticketPrice.toFixed(2)}`;
     const badgeHeight = 30;
     const badgeRadius = 15;
-    const badgeWidth = doc.widthOfString(badgeText) + 30;
+    const badgeWidth = doc.widthOfString(badgeText) + 40;
 
     doc
       .roundedRect(x + PADDING, currentY, badgeWidth, badgeHeight, badgeRadius)
@@ -163,7 +162,6 @@ async function drawTicketContent(
       );
     currentY += badgeHeight + 20;
 
-    // --- 4. TICKET HOLDER BOX (Fixed Alignment) ---
     // Simplified to only hold the Ticket Holder name. Purchase code is moved below the QR.
     const holderBoxHeight = 70; 
     doc
@@ -186,7 +184,7 @@ async function drawTicketContent(
     currentY += holderBoxHeight + 20;
 
 
-    // --- 5. DATE & VENUE (Two Columns) ---
+    //  DATE & VENUE 
     const colWidth = contentWidth / 2;
     const rightColX = x + PADDING + colWidth;
     const eventDate = new Date(payload.eventDate);
@@ -196,13 +194,13 @@ async function drawTicketContent(
     
     const detailsStartY = currentY; 
 
-    // Column 1: Date & Time
+    //  Date & Time
     doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Date & Time", x + PADDING, detailsStartY);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(colors.text).text(`${dateStr}`, x + PADDING);
     doc.font("Helvetica").fontSize(12).text(`${timeStr}`, x + PADDING);
     const dateColEndY = doc.y; 
 
-    // Column 2: Venue (Start drawing at the same Y as the Date header)
+    //  Venue (Start drawing at the same Y as the Date header)
     doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Venue", rightColX, detailsStartY);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(colors.text).text(payload.venue, rightColX, detailsStartY + 15);
     const venueColEndY = doc.y;
@@ -211,8 +209,8 @@ async function drawTicketContent(
     doc.y = currentY; 
 
 
-    // --- 6. QR CODE (Increased Size) ---
-    const qrSize = 180; // Increased QR size from 150 to 180
+    // QR CODE 
+    const qrSize = 220; 
     const qrX = x + width / 2 - qrSize / 2;
     const qrY = currentY;
 
@@ -232,9 +230,9 @@ async function drawTicketContent(
       fit: [qrSize, qrSize],
     });
 
-    currentY += qrSize + 20; // Update currentY based on new qrSize
+    currentY += qrSize + 20; 
     
-    // --- 7. PURCHASE CODE (Dedicated Section) ---
+    //  PURCHASE CODE 
     doc
       .font("Helvetica-Bold")
       .fontSize(12)
@@ -246,7 +244,7 @@ async function drawTicketContent(
 
     currentY = doc.y + 12;
     
-    // --- 8. FOOTER / INSTRUCTIONS ---
+    //  FOOTER / INSTRUCTIONS 
     doc
       .font("Helvetica")
       .fontSize(9)

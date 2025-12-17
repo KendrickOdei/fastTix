@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function sendTicketEmail(payloads: TicketPdfPayload[]) {
     
     if (payloads.length === 0) {
-        console.warn("sendTicketEmail called with an empty payload array.");
+        console.warn("Empty array");
         return;
     }
 

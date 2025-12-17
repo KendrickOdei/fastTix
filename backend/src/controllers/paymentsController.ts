@@ -117,8 +117,6 @@ export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: 
 
 export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: Response) => {
     
-    console.log("webhook received", req.body)
-    console.log("webhook received from paystack")
      
     const signature = req.headers['x-paystack-signature'];
     
@@ -224,8 +222,8 @@ for (const item of purchasedTicket.tickets) {
             eventTitle: eventDetails.title || 'Event',
             eventDate: eventDetails?.date || new Date().toISOString(),
             ticketType: ticketDetails?.name || 'Ticket' ,
-            ticketPrice: item.price, // Use the specific price for this type
-            quantity: item.quantity, // Use the specific quantity for this type
+            ticketPrice: item.price, 
+            quantity: item.quantity, 
             name: purchasedTicket.name || "Valued Customer",
             email: purchasedTicket.email,
             venue: eventDetails?.venue || 'Venue',
