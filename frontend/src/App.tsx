@@ -57,7 +57,6 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/search" element={<SearchResults />} />
       <Route path="/event-details/:id" element={<EventDetails />} />
-      <Route path="/my-events" element={<MyEvents />} />
       <Route path="/checkout" element={<Checkout />} />
       <Route path="/guest-checkout" element={<GuestCheckout />} />
       <Route path="/edit-event/:id" element={<EditEvent />} />

@@ -155,10 +155,10 @@ export default function EventsPage() {
                             placeholder="Search by event title, venue, or keyword..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full py-4 pl-12 pr-4 text-lg border-2 border-green-500 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-100 transition-shadow shadow-lg"
+                            className="w-full py-4 pl-12 pr-4 text-lg border-2 border-gray-900 rounded-xl focus:outline-none focus:ring-4 focus:ring-green-100 transition-shadow shadow-lg"
                         />
                         <button type="submit" className="absolute left-0 top-0 h-full w-12 flex items-center justify-center">
-                            <Search className="w-6 h-6 text-green-500" />
+                            <Search className="w-6 h-6 text-gray-900" />
                         </button>
                     </div>
                 </form>
@@ -175,7 +175,7 @@ export default function EventsPage() {
                             className={`
                             px-6 py-2 rounded-full text-lg font-semibold transition-all duration-200 whitespace-nowrap
                             ${activeCategory === category
-                                ? 'bg-green-600 text-white shadow-md transform scale-105'
+                                ? 'bg-gray-900 text-white shadow-md transform scale-105'
                                 : 'bg-white text-gray-700 border border-gray-300 hover:bg-green-100 hover:border-green-400'
                             }
                             `}
@@ -186,7 +186,7 @@ export default function EventsPage() {
                     </div>
                 </div>
 
-                {/* 4. Event Results (Fixed logic to use displayedEvents) */}
+                {/* 4. Event Results  */}
                 <div className="mt-12">
                     {isLoading ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -205,7 +205,7 @@ export default function EventsPage() {
                     ) : displayedEvents.length > 0 ? (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {/* FIX: Map over displayedEvents instead of the raw events array */}
+                                {/*  Map over displayedEvents instead of the raw events array */}
                                 {displayedEvents.map((event) => (
                                     <EventCard key={event._id} event={event} />
                                 ))}
@@ -256,7 +256,7 @@ export default function EventsPage() {
     );
 }
 
-// --- Event Card Component (Kept the same) ---
+//  Event Card Component 
 interface EventCardProps {
     event: Event;
 }
@@ -274,14 +274,14 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => (
                 className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
             />
             {/* Category Tag */}
-            <span className="absolute top-3 right-3 bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">
+            <span className="absolute top-3 right-3 bg-gray-900 text-white text-xs font-bold px-2 py-1  shadow-md">
                 {event.category || 'General'}
             </span>
         </div>
 
         {/* Content */}
         <div className="p-6">
-            <h3 className="text-xl font-black text-gray-900 line-clamp-2 group-hover:text-green-600 transition mb-3">
+            <h3 className="text-xl font-black text-gray-900 line-clamp-2 group-hover:text-gray-600 transition mb-3">
                 {event.title}
             </h3>
 
@@ -297,10 +297,10 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => (
             </div>
 
             <div className="mt-6 flex items-center justify-between">
-                <span className="text-green-600 font-extrabold text-lg">
+                <span className="text-gray-900 font-extrabold text-lg">
                     View Details
                 </span>
-                <ArrowRight className="w-6 h-6 text-green-600 group-hover:translate-x-1 transition" />
+                <ArrowRight className="w-6 h-6 text-gray-900 group-hover:translate-x-1 transition" />
             </div>
         </div>
     </Link>

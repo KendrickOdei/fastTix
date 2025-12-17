@@ -273,7 +273,7 @@ export default function Hero() {
 
                               {/* Content */}
                               <div className="p-6 bg-white">
-                                <h3 className="text-xl font-black text-gray-900 line-clamp-2 group-hover:text-green-600 transition">
+                                <h3 className="text-xl font-black text-gray-900 line-clamp-2 group-hover:text-gray-600 transition">
                                   {event.title}
                                 </h3>
 
@@ -289,8 +289,8 @@ export default function Hero() {
                                 </div>
 
                                 <div className="mt-6 flex items-center justify-between">
-                                  <span className="text-green-600 font-black text-lg">Get Tickets</span>
-                                  <ArrowRight className="w-6 h-6 text-green-600 group-hover:translate-x-2 transition" />
+                                  <span className="text-gray-900 font-black text-lg">Get Tickets</span>
+                                  <ArrowRight className="w-6 h-6 text-gray-900 group-hover:translate-x-2 transition" />
                                 </div>
                               </div>
                             </Link>
@@ -302,23 +302,23 @@ export default function Hero() {
                       {/* Hide Left Button if at the start (isAtStart) */}
                       <button
                         onClick={() => scrollEvents('left')}
-                        className={`hidden lg:flex absolute left-0 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-white/80 hover:bg-white border border-gray-200 rounded-full shadow-lg transition-all ${
+                        className={`hidden lg:flex absolute left-[-30px] top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-gray-900 hover:bg-gray-700 border border-gray-200 rounded-full shadow-lg transition-all ${
                             isAtStart && events.length < 4 ? 'opacity-0 pointer-events-none' : '' // Hide if at start AND not many events
                         }`}
                         style={{visibility: (isAtStart && events.length < 4) ? 'hidden' : 'visible'}} 
                       >
-                        <ChevronLeft className="w-6 h-6 text-gray-700" />
+                        <ChevronLeft className="w-6 h-6 text-white" />
                       </button>
 
                       {/* Right Button  */}
                       <button
                         onClick={() => scrollEvents('right')}
-                        className={`hidden lg:flex absolute right-0 top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-white/80 hover:bg-white border border-gray-200 rounded-full shadow-lg transition-all ${
+                        className={`hidden lg:flex absolute right-[-20px] top-1/2 transform -translate-y-1/2 z-20 w-12 h-12 items-center justify-center  bg-gray-900 hover:bg-gray-700 border border-gray-200 rounded-full shadow-lg transition-all ${
                             events.length < 4 ? 'opacity-0 pointer-events-none' : ''
                         }`}
                         style={{visibility: events.length < 4 ? 'hidden' : 'visible'}}
                       >
-                        <ChevronRight className="w-6 h-6 text-gray-700" />
+                        <ChevronRight className="w-6 h-6 text-white" />
                       </button>
                     </div>
 
@@ -326,7 +326,7 @@ export default function Hero() {
                     <div className="mt-10 text-center">
                       <Link
                         to="/events"
-                        className="inline-flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white font-bold px-10 py-5 rounded-lg text-xl transition transform hover:scale-105 shadow-2xl"
+                        className="inline-flex items-center gap-3 bg-gray-900 hover:bg-gray-700 text-white font-bold px-10 py-5 rounded-lg text-xl transition transform hover:scale-105 shadow-2xl"
                       >
                         View All Events
                         <ArrowRight className="w-6 h-6" />
