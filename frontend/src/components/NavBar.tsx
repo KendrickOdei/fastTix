@@ -184,88 +184,127 @@ const Navbar = () => {
          
         
 
-        {/* Mobile Menu Icon */}
-        <div ref={menuRef} className="md:hidden bg-gray-900 relative flex gap-6">
-        <button onClick={() => setShowSearch(true)} className="text-white text-xl md:text-2xl ml-4 focus:outline-none">
-          <FaSearch />
-        </button>
-            <button onClick={toggleMenu} className="text-white">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                stroke="currentColor"
-                className="w-9 h-9"
-              >
-                <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              </svg>
-            </button>
-          
+        
+{/* Mobile Menu Wrapper  */}
+<div ref={menuRef} className="md:hidden flex gap-6 items-center">
+  {/* Search Icon */}
+  <button 
+    onClick={() => setShowSearch(true)} 
+    className="text-white text-xl focus:outline-none"
+  >
+    <FaSearch />
+  </button>
 
-          
-            {/* Mobile Dropdown */}
-            {isMenuOpen && (
-              <div className="absolute right-[-20px] mt-13 w-80 bg-green-800 text-white p-3 shadow-2xl z-50 border border-green-700">
-                
+  {/* Hamburger Toggle */}
+  <button onClick={toggleMenu} className="text-white">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={2.5}
+      stroke="currentColor"
+      className="w-8 h-8"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+  </button>
 
-                {/*  */}
-                <ul className=" text-lg">
-                  <li>
-                    <Link
-                      to="/"
-                      onClick={toggleMenu}
-                      className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
-                    >
-                      <FaHome className="mr-3" /> Home
-                    </Link>
+  {/* Backdrop Overlay  */}
+  {/* This dims the rest of the screen when the menu is open */}
+  <div 
+    className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+      isMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+    }`}
+    onClick={toggleMenu}
+  />
 
-                    <Link
-                      to="/events"
-                      onClick={toggleMenu}
-                      className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
-                    >
-                       Discover Events
-                    </Link>
-                  </li>
+  {/*  Side Drawer  */}
+  <div 
+    className={`fixed top-0 right-0 h-screen w-[280px] bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+      isMenuOpen ? "translate-x-0" : "translate-x-full"
+    }`}
+  >
+    {/* Close Button Inside Drawer */}
+    <div className="flex justify-end p-5">
+      <button onClick={toggleMenu} className="text-gray-400 font-bold hover:text-white">
+         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+         </svg>
+      </button>
+    </div>
 
-                  {role === 'organizer' && (
-                    <li>
-                      <Link
-                        to="/organizer"
-                        onClick={toggleMenu}
-                        className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
-                      >
-                        My Dashboard
-                      </Link>
-                    </li>
-                  )}
+    {/* Menu Links */}
+    <ul className="flex flex-col gap-2 px-4 text-lg">
+      <li>
+        <Link
+          to="/"
+          onClick={toggleMenu}
+          className="flex items-center hover:bg-white/10 text-white font-bold px-4 py-4 rounded-xl transition-all"
+        >
+          <FaHome className="mr-4 text-green-500" /> Home
+        </Link>
+      </li>
 
-                  <li>
-                    {isAuthenticated ? (
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left flex items-center hover:bg-red-600 px-4 py-3 rounded-lg transition"
-                      >
-                        <FaPowerOff className="mr-3" /> Logout
-                      </button>
-                    ) : (
-                      <Link
-                        to="/login"
-                        onClick={toggleMenu}
-                        className="flex items-center hover:bg-green-700 px-4 py-3 rounded-lg transition"
-                      >
-                        Sign In / Sign Up
-                      </Link>
-                    )}
-                  </li>
-                </ul>
-              </div>
-            )}
+      <li>
+        <Link
+          to="/events"
+          onClick={toggleMenu}
+          className="flex items-center hover:bg-white/10 text-white font-bold px-4 py-4 rounded-xl transition-all"
+        >
+          <div className="w-5 h-5 mr-4 flex items-center justify-center">✨</div>
+          Discover Events
+        </Link>
+      </li>
 
+      <li>
+        <Link 
+          to={isAuthenticated ? "/organizer/dashboard" : "/register"} 
+          onClick={toggleMenu}
+          className="flex items-center hover:bg-white/10 text-white font-bold px-4 py-4 rounded-xl transition-all"
+        >
+          <div className="w-5 h-5 mr-4 flex items-center justify-center">🎟️</div>
+          Sell Tickets
+        </Link>
+      </li>
+
+      {role === 'organizer' && (
+        <li>
+          <Link
+            to="/organizer"
+            onClick={toggleMenu}
+            className="flex items-center hover:bg-white/10 text-white font-bold px-4 py-4 rounded-xl transition-all"
+          >
+            <div className="w-5 h-5 mr-4 flex items-center justify-center">📊</div>
+            My Dashboard
+          </Link>
+        </li>
+      )}
+
+      {/* Divider */}
+      <hr className="border-gray-800 my-4 mx-4" />
+
+      <li>
+        {isAuthenticated ? (
+          <button
+            onClick={() => { handleLogout(); toggleMenu(); }}
+            className="w-full text-left flex items-center text-red-400 font-bold hover:bg-red-500/10 px-4 py-4 rounded-xl transition-all"
+          >
+            <FaPowerOff className="mr-4" /> Logout
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            onClick={toggleMenu}
+            className="flex items-center bg-green-700  text-white px-4 py-4 rounded-xl transition-all justify-center font-bold"
+          >
+            Sign In / Sign Up
+          </Link>
+        )}
+            </li>
+          </ul>
         </div>
+      </div>
+
       </div>
     </nav>
   );

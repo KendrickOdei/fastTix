@@ -150,7 +150,7 @@ async function drawTicketContent(
     doc
       .fillColor("#ffffff")
       .font("Helvetica-Bold")
-      .fontSize(10)
+      .fontSize(16)
       .text(
         badgeText,
         x + PADDING,
@@ -210,7 +210,7 @@ async function drawTicketContent(
 
 
     // QR CODE 
-    const qrSize = 220; 
+    const qrSize = 260; 
     const qrX = x + width / 2 - qrSize / 2;
     const qrY = currentY;
 

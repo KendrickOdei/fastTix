@@ -44,6 +44,8 @@ export default function EventDetails() {
   
   const [liked, setLiked] = useState(false);
 
+
+
   useEffect(() => {
     const fetchData = async () => {
       try {

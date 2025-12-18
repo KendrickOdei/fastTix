@@ -46,7 +46,6 @@ export default function EventsPage() {
     
     const limit = 9;
     
-    // --- API Calls ---
 
     // Fetch Paginated Events (only when no search query is active)
     const fetchEvents = async (currentPage: number) => {

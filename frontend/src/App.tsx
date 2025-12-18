@@ -25,6 +25,7 @@ import GuestCheckout from "./pages/GuestCheckout";
 import EventsPage from "./pages/EventsPage";
 import Footer from "./components/Footer";
 import PaymentSuccess from "./pages/PaymentSuccessPage";
+import ScrollToTop from "./components/ScrollToTop";
 
 
 
@@ -33,6 +34,9 @@ function App() {
   useEffect(()=> {
     setNavigate(navigate)
   }, [navigate])
+  
+    
+
   return (
     <div className="flex flex-col min-h-screen">
       <ToastContainer
@@ -47,6 +51,7 @@ function App() {
         pauseOnHover
         theme="light" 
         />
+        <ScrollToTop/>
       <Navbar />
       <main className="flex-grow">
       <Routes>
