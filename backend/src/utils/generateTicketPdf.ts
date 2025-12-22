@@ -57,7 +57,6 @@ export async function generateTicketPdf(
       const colors = getTicketFillColor();
       const initialY = 60; 
 
-      /* ================= TICKET DRAWING LOOP (Creates a stack effect) ================= */
       
       const ticketsToDraw = Math.min(payload.quantity, 3); 
 
@@ -107,7 +106,7 @@ async function drawTicketContent(
     let currentY = y + PADDING;
     const contentWidth = width - 2 * PADDING;
     
-    // --- 1. HEADER IMAGE ---
+    //  1. HEADER IMAGE 
     const imageHeight = 120;
     if (payload.eventImageUrl) {
       const imageBuffer = await fetchImageBuffer(payload.eventImageUrl);
@@ -137,35 +136,23 @@ async function drawTicketContent(
     
     currentY = doc.y + 12;
 
-    // Badge text now clearly separates the ticket type.
-    const badgeText = `${payload.ticketType.toUpperCase()} ${payload.quantity > 1 ? `(${payload.quantity} Tickets)` : ''} • GHS ${payload.ticketPrice.toFixed(2)}`;
-    const badgeHeight = 30;
-    const badgeRadius = 15;
-    const badgeWidth = doc.widthOfString(badgeText) + 40;
+    const ticketTypeText = (payload.ticketType || 'TICKET').toUpperCase();
 
     doc
-      .roundedRect(x + PADDING, currentY, badgeWidth, badgeHeight, badgeRadius)
-      .fill(colors.primary);
-
-    doc
-      .fillColor("#ffffff")
       .font("Helvetica-Bold")
-      .fontSize(16)
-      .text(
-        badgeText,
-        x + PADDING,
-        currentY + 10,
-        {
-          width: badgeWidth,
-          align: "center",
-        }
-      );
-    currentY += badgeHeight + 20;
+      .fontSize(26) 
+      .fillColor(colors.text) 
+      .text(ticketTypeText, x + PADDING, currentY, {
+        width: width - (2 * PADDING), 
+        align: "center",
+      });
+
+    currentY = doc.y + 20;
 
     // Simplified to only hold the Ticket Holder name. Purchase code is moved below the QR.
     const holderBoxHeight = 70; 
     doc
-      .roundedRect(x + PADDING, currentY, contentWidth, holderBoxHeight, 8) // Box now correctly fills full contentWidth
+      .roundedRect(x + PADDING, currentY, contentWidth, holderBoxHeight, 8) 
       .fill(colors.secondary);
 
     // Holder Name
@@ -200,7 +187,7 @@ async function drawTicketContent(
     doc.font("Helvetica").fontSize(12).text(`${timeStr}`, x + PADDING);
     const dateColEndY = doc.y; 
 
-    //  Venue (Start drawing at the same Y as the Date header)
+    //  Venue 
     doc.fillColor(colors.lightText).fontSize(10).font("Helvetica").text("Venue", rightColX, detailsStartY);
     doc.font("Helvetica-Bold").fontSize(14).fillColor(colors.text).text(payload.venue, rightColX, detailsStartY + 15);
     const venueColEndY = doc.y;
