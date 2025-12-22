@@ -9,6 +9,8 @@ import PurchasedTicket from '../models/PurchasedTicket';
 import { sendTicketEmail } from '../utils/ticketMailer';
 import { generatePurchaseCode } from '../utils/generateReference';
 
+import Event from '../models/event';
+
 interface AuthRequest extends Request {
   user?: IUser;
 }
@@ -25,12 +27,35 @@ interface InitializePayload {
 }
 
 export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: Response) => {
+    
+    const eventId = req.params.id
+    
+    const event = await Event.findById(eventId);
+
+    if (!event) {
+        throw new AppError("Event not found", 404);
+    }
+
+    //  Get current time
+    const now = new Date();
+    const eventDate = new Date(event.date);
+
+    //  Check if the event has already passed
+    if (eventDate < now) {
+        return res.status(400).json({
+            status: 'fail',
+            message: "This event has already ended. Tickets are no longer available for purchase."
+        });
+    }
+
+
     const { tickets, email, name } = req.body as InitializePayload;
     const userId = req.user?.id || null;
 
     if (!tickets || tickets.length === 0 || !email || !name) {
         throw new AppError("Missing required fields", 400);
     }
+            
 
     let totalAmount = 0;
     const ticketDetails = [];

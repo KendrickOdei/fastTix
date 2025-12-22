@@ -14,6 +14,8 @@ export interface TicketPdfPayload {
   name: string;
   email: string;
   venue: string;
+  saleStart?: Date,
+  saleEnd?: Date,
   eventImageUrl?: string;
 }
 
@@ -81,7 +83,7 @@ export async function generateTicketPdf(
           }
       }
 
-      /* ================= END TICKET DRAWING LOOP ================= */
+      /*  END TICKET DRAWING LOOP  */
 
       doc.y = initialY + TICKET_HEIGHT + 30;
       doc.end();
@@ -193,7 +195,20 @@ async function drawTicketContent(
     const venueColEndY = doc.y;
 
     currentY = Math.max(dateColEndY, venueColEndY) + 20;
-    doc.y = currentY; 
+    doc.y = currentY;
+    
+    //add expired text if event has passed 
+      const now = new Date();
+
+      if (new Date(payload.eventDate) < now) {
+          doc.save()
+            .fontSize(60)
+            .fillColor('red')
+            .fillOpacity(0.3)
+            .rotate(-45, { origin: [x + width/2, y + height/2] })
+            .text("EXPIRED", x, y + height/2, { align: 'center', width: width })
+            .restore();
+      }
 
 
     // QR CODE 
