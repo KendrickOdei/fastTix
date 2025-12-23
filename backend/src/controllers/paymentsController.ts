@@ -21,33 +21,13 @@ interface TicketItem {
 }
 
 interface InitializePayload {
-  tickets: TicketItem[];  // ← NOW AN ARRAY
+  tickets: TicketItem[];  
   email: string;
   name: string;
 }
 
 export const initializeTransaction = asyncHandler(async (req: AuthRequest, res: Response) => {
     
-    const eventId = req.params.id
-    
-    const event = await Event.findById(eventId);
-
-    if (!event) {
-        throw new AppError("Event not found", 404);
-    }
-
-    //  Get current time
-    const now = new Date();
-    const eventDate = new Date(event.date);
-
-    //  Check if the event has already passed
-    if (eventDate < now) {
-        return res.status(400).json({
-            status: 'fail',
-            message: "This event has already ended. Tickets are no longer available for purchase."
-        });
-    }
-
 
     const { tickets, email, name } = req.body as InitializePayload;
     const userId = req.user?.id || null;
