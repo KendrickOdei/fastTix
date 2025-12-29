@@ -51,7 +51,7 @@ const SearchResults = () => {
         <>
           <h1 className="text-2xl font-bold mb-6">Search Results for: "{query}"</h1>
   
-          {results.length === 0 ? (
+          {results?.length === 0 ? (
             <p className="text-gray-600">No events found.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

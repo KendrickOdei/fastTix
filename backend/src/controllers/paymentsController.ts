@@ -158,7 +158,6 @@ export const verifyTransactionWebhook = asyncHandler(async (req: Request, res: R
 
     const verifyData = await verifyRes.json();
 
-    console.log('verify data', verifyData)
     
     // Check if verification failed
     if (!verifyData.status || verifyData.data.status !== "success") {
@@ -215,8 +214,8 @@ for (const item of purchasedTicket.tickets) {
        const ticketDetails = item.ticketId 
 
        if (!ticketDetails || !ticketDetails.eventId) { 
-                // If data is missing (e.g., deleted ticket), skip this one
-                console.error("Skipping ticket fulfillment due to missing populated data for item:", item);
+                // If data is missing 
+                console.error("Skipping ticket fulfillment due to missing  data for item:", item);
                 return null;
             }
 
@@ -224,15 +223,15 @@ for (const item of purchasedTicket.tickets) {
 
        return {
             purchaseCode: purchasedTicket.purchaseCode,
-            eventTitle: eventDetails.title || 'Event',
-            eventDate: eventDetails?.date || new Date().toISOString(),
-            ticketType: ticketDetails?.name || 'Ticket' ,
+            eventTitle: eventDetails.title ?? 'Event',
+            eventDate: eventDetails?.date ?? new Date().toISOString(),
+            ticketType: ticketDetails?.name ?? 'Ticket' ,
             ticketPrice: item.price, 
             quantity: item.quantity, 
-            name: purchasedTicket.name || "Valued Customer",
+            name: purchasedTicket.name ?? "Valued Customer",
             email: purchasedTicket.email,
-            venue: eventDetails?.venue || 'Venue',
-            eventImageUrl: eventDetails?.image || undefined
+            venue: eventDetails?.venue ?? 'Venue',
+            eventImageUrl: eventDetails?.image ?? undefined
           }
       }).filter((p): p is any => p !== null);
 

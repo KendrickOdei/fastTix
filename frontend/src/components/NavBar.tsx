@@ -10,7 +10,19 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../Context/AuthContext';
 
+interface Event {
+    _id: string;
+    title: string;
+    date: string;
+    venue: string;
+    image?: string;
+    category: string; // Ensure category is expected
+}
 
+interface suggestInterface {
+    
+    results: Event[];
+}
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,15 +35,50 @@ const Navbar = () => {
 
   const [showSearch, setShowSearch] = useState(false)
   const searchRef = useRef<HTMLDivElement | null>(null);
+  const [suggestions, setSuggestions] = useState<Event[]>([]);
+const [isSearching, setIsSearching] = useState(false);
+
+
+ useEffect(() => {
+  const fetchSuggestions = async () => {
+    if (searchTerm.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+      const response = await fetch(`${baseUrl}/api/events?q=${searchTerm}`);
+      const data: suggestInterface = await response.json();
+
+     if (data && data.results) {
+            setSuggestions(data.results.slice(0, 5)); 
+        } else {
+            setSuggestions([]);
+        } 
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const timer = setTimeout(fetchSuggestions, 300); // Debounce 300ms
+  return () => clearTimeout(timer);
+}, [searchTerm]);
  
 
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+      navigate(`/events?q=${encodeURIComponent(searchTerm)}`);
       setSearchTerm("");
       setShowSearch(false);
+      setSuggestions([]); 
     }
   };
 
@@ -39,6 +86,9 @@ const Navbar = () => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
         setShowSearch(false);
+        setSuggestions([]);
+        setSearchTerm("");
+
       }
     };
     if (showSearch) {
@@ -84,7 +134,7 @@ const Navbar = () => {
   }, [isMenuOpen]);
 
   return (
-    <nav className="w-full  top-0 left-0 right-0 z-50 bg-gray-900 p-4 shadow-md">
+    <nav className=" relative w-full  top-0 left-0 right-0 z-50 bg-gray-900 p-4 shadow-md items-center">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -93,37 +143,84 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {showSearch && (
-            <div className="fixed top-0 inset-0 bg-transparent z-50 flex items-start justify-center px-4 pt-24">
-              <div
-                ref={searchRef}
-                className="bg-white rounded-md w-full max-w-xl p-4 shadow-md relative animate-slideInLeft"
-              >
-                <button
-                  onClick={() => setShowSearch(false)}
-                  className="absolute top-2 right-2 text-gray-600 hover:text-black"
-                >
-                  <FaTimes />
-                </button>
-                <form onSubmit={handleSearch} className="flex items-center space-x-2">
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search for events..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-600 text-black"
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="text-white bg-green-600 hover:bg-green-700 p-2 rounded"
-                  >
-                    <FaSearch />
-                  </button>
-                </form>
+      {showSearch && (
+      <div className="absolute inset-0 bg-gray-900 z-[60] flex items-center justify-center px-4 animate-in fade-in slide-in-from-top-2 duration-300">
+       <div className="max-w-3xl w-full flex items-center gap-4 relative" ref={searchRef}>
+      
+      {/* Search Input Wrapper */}
+      <div className="flex-1 relative">
+          <button 
+              onClick={handleSearch}
+              type="button"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-green-500 transition-colors z-10"
+            >
+              <FaSearch />
+            </button> 
+
+        <form onSubmit={handleSearch}>
+          <input
+            id="event-search" 
+            name="q"
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search events, artists, or venues..."
+            className="w-full bg-gray-800 text-white pl-12 pr-4 py-3 rounded-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-green-600 transition-all text-lg"
+            autoFocus
+          />
+        </form>
+
+        {/* Suggestions Dropdown - Now floating below the bar */}
+        {(suggestions.length > 0 || isSearching) && (
+          <div className="absolute top-[110%] left-0 right-0 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-[70] min-w-[300px]">
+            {isSearching && (
+              <div className="p-4 text-sm text-gray-500 flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                Searching for "{searchTerm}"...
               </div>
-            </div>
-          )}
+            )}
+            
+            {!isSearching && suggestions.map((event) => (
+              <Link
+                id={`input-${event._id}`} 
+                key={event._id}
+                to={`/event-details/${event._id}`}
+                onClick={() => {
+                  setShowSearch(false);
+                  setSearchTerm("");
+                  setSuggestions([]);
+                }}
+                className="flex items-center gap-4 p-3 hover:bg-green-50 transition-colors border-b last:border-0"
+              >
+                <img 
+                  src={event.image || '/placeholder.jpg'} 
+                  alt="" 
+                  className="w-12 h-12 object-cover rounded-lg shadow-sm"
+                />
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-gray-900">{event.title}</span>
+                  <span className="text-xs text-gray-500">{event.venue}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Close Button */}
+      <button 
+        onClick={() => {
+          setShowSearch(false);
+          setSearchTerm("");
+          setSuggestions([]);
+        }}
+        className="text-gray-400 hover:text-white transition-transform hover:scale-110"
+      >
+        <FaTimes size={24} />
+      </button>
+    </div>
+  </div>
+        )}
 
         {/* Desktop Menu */}
         
@@ -306,6 +403,7 @@ const Navbar = () => {
       </div>
 
       </div>
+      
     </nav>
   );
 };

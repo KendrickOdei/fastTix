@@ -134,7 +134,7 @@ async function drawTicketContent(
       .font("Helvetica-Bold")
       .fontSize(24)
       .fillColor(colors.text)
-      .text(payload.eventTitle, x + PADDING, currentY, { width: contentWidth });
+      .text(payload.eventTitle, x + PADDING, currentY, { width: contentWidth, align: "center", });
     
     currentY = doc.y + 12;
 
@@ -151,7 +151,7 @@ async function drawTicketContent(
 
     currentY = doc.y + 20;
 
-    // Simplified to only hold the Ticket Holder name. Purchase code is moved below the QR.
+    // Simplified to only hold the Ticket Holder name. 
     const holderBoxHeight = 70; 
     doc
       .roundedRect(x + PADDING, currentY, contentWidth, holderBoxHeight, 8) 
