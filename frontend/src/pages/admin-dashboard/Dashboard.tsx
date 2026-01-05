@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import adminService from './services/adminService';
-import { AdminStats } from './services/adminService';
+import adminService from './services/adminService.ts';
+import { AdminStats } from './services/adminService.ts';
 
 
 export const StatsCard: React.FC<{ title: string; value: string | number;  trend: string; color: string }> = ({ title, value,trend, color }) => (
