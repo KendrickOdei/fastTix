@@ -48,7 +48,7 @@ interface ApiResponse<T> {
   message?: string;
 }
 
- const adminService = {
+export const adminService = {
   /**
    * Get dashboard statistics
    */
@@ -155,5 +155,3 @@ interface ApiResponse<T> {
     });
   },
 };
-
-export default adminService

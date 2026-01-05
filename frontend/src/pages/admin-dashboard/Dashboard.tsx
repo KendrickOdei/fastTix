@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import adminService from './services/adminService.ts';
-import { AdminStats } from './services/adminService.ts';
-
+import { adminService,AdminStats } from './services/AdminServices';
 
 export const StatsCard: React.FC<{ title: string; value: string | number;  trend: string; color: string }> = ({ title, value,trend, color }) => (
     <div className={`p-6 rounded-xl shadow-lg flex items-center justify-between transition-all duration-300 ${color}`}>
