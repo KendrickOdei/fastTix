@@ -170,7 +170,6 @@ const [isSearching, setIsSearching] = useState(false);
           />
         </form>
 
-        {/* Suggestions Dropdown - Now floating below the bar */}
         {(suggestions.length > 0 || isSearching) && (
           <div className="absolute top-[110%] left-0 right-0 bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-[70] min-w-[300px]">
             {isSearching && (
@@ -241,6 +240,16 @@ const [isSearching, setIsSearching] = useState(false);
               <>
                 <Link to="organizer/dashboard" className="hover:text-gray-300 flex items-center">
                   My Dashboard
+                </Link>
+
+                
+              </>
+            )}
+
+             {role === 'admin' && (
+              <>
+                <Link to="admin/dashboard" className="hover:text-gray-300 flex items-center">
+                  Admin Dashboard
                 </Link>
 
                 
@@ -376,6 +385,19 @@ const [isSearching, setIsSearching] = useState(false);
           </Link>
         </li>
       )}
+
+      {role === 'admin' && (
+         <>
+        <Link
+         to="admin/dashboard" 
+         onClick={toggleMenu}
+         className="flex items-center hover:bg-white/10 text-white font-bold px-4 py-4 rounded-xl transition-all">
+            Admin Dashboard
+         </Link>
+
+                
+         </>
+       )}
 
       {/* Divider */}
       <hr className="border-gray-800 my-4 mx-4" />

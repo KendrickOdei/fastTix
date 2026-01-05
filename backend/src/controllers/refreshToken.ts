@@ -13,13 +13,13 @@ import User from "../models/user";
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
   const rawToken = req.cookies.refreshToken;
 
-  if (!rawToken) {
-    throw new AppError("No refresh token", 400);
+ if (!rawToken) {
+    return res.status(401).json({ message: "No refresh token provided" });
   }
 
   // Find the token in DB 
   const tokenDb = await RefreshToken.findOne({
-    token: rawToken,                    // ← Direct string match
+    token: rawToken,                    
     expiresAt: { $gt: new Date() }
   });
 
@@ -27,14 +27,25 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError('Refresh token invalid or expired', 401);
   }
 
-  // Generate new access token
   const user = await User.findById(tokenDb.userId);
-  if (!user) throw new AppError('User not found', 404);
+  if (!user) {
+  // delete orphan refresh token
+  await RefreshToken.deleteOne({ _id: tokenDb._id });
+
+  // clear cookie
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
+
+  throw new AppError('Session expired', 401);
+}
+  // Generate new access token
 
   const payload = {
     userId: user._id,
     email: user.email,
-    userName: user.userName,
     organizationName: user.organizationName,
     role: user.role
   };

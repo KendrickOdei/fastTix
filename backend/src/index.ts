@@ -14,6 +14,7 @@ import dashboardRoutes from './routes/dashboard.route'
 import PaymentRoute from './routes/payments'
 import { verifyTransactionWebhook } from './controllers/paymentsController';
 import  connectDB  from './config/db';
+import adminDashboard from './routes/adminRoutes'
 
 
 
@@ -72,6 +73,7 @@ app.use('/api/verifyotp', verifyOtpRoute);
 app.use('/api', searchRoutes);
 app.use("/api/organizer", dashboardRoutes)
 app.use("/api/payments", PaymentRoute)
+app.use("/api/admin", adminDashboard)
 
 app.use(errorHandler)
 

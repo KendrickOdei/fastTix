@@ -49,7 +49,6 @@ router.get('/mine',authMiddleware, authorized('organizer') ,myEvents)
 
 router.put('/edit-event/:id',authMiddleware,authorized('organizer'),editEvent)
 
-router.delete('/delete/:id',authMiddleware,authorized('organizer'),deleteEvent)
 
 
 router.get('/:eventId/tickets',authMiddleware,getAllTickets)

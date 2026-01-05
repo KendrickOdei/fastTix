@@ -8,9 +8,7 @@ export interface IPurchasedTicket extends Document {
   name: string;
   email: string;
   eventId: Types.ObjectId;
-
-
-  // NEW: Multiple ticket types in one order
+  //  Multiple ticket types in one order
   tickets: {
     ticketId: Types.ObjectId | (ITicket & { eventId: Types.ObjectId | IEvent });
     quantity: number;
@@ -29,9 +27,7 @@ const PurchasedTicketSchema: Schema<IPurchasedTicket> = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
   eventId: { type: Schema.Types.ObjectId, ref: "Event", required: true },
 
-  
-  // THIS IS THE KEY CHANGE — ARRAY OF TICKETS
-  tickets: [{
+    tickets: [{
     ticketId: { type: Schema.Types.ObjectId, ref: "Ticket", required: true },
     quantity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true },

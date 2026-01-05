@@ -8,6 +8,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   role: 'attendee' | 'organizer' | 'admin';
+  status: 'active' | 'suspended'
   organizationName?: string;
   location?: string;
   country?: string;
@@ -21,12 +22,14 @@ export interface IUser extends Document {
 const userSchema: Schema<IUser> = new Schema({
 
   fullName: { type: String, required: false },
-  userName: { type: String, trim: true, unique: true, required:
+  userName: { type: String, trim: true, unique: true, sparse: true,  
+ required:
     function(){ return this.role === 'attendee'}
   },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['attendee', 'organizer', 'admin'], default: 'attendee' },
+  status: { type: String, enum: ['active', 'suspended'], default: 'active' },
   organizationName: { type: String },
   location: { type: String, required: function(){return this.role === 'organizer'} },
   country: {type: String, required: true},
