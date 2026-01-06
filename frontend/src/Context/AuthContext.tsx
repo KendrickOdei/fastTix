@@ -62,6 +62,10 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
     const login = async (identifier: string, password: string) => {
         setLoading(true);
+
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        setUser(null);
         try {
             const response = await apiFetch<{
                 accessToken: string;
@@ -107,8 +111,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
         });
     };
             
-    const logout = (shouldNavigate = true) => {
-        console.log('🚪 Logging out, shouldNavigate:', shouldNavigate);
+    const logout = async (shouldNavigate = true) => {
+
+        try {
+            await apiFetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include',
+            });
+        } catch {}
         // Clear storage/state
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');

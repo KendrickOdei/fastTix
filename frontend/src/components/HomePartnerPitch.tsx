@@ -13,7 +13,8 @@ const HomePartnerPitch = () => {
             Ready to Sell Out Your Next Event?
           </h2>
           <p className="text-xl text-white max-w-3xl mx-auto">
-            Get the tools you need to list, market, and manage ticket sales effortlessly—and keep more of your revenue.
+            List, market, and manage your ticket sales effortlessly, with just a <span className="font-semibold text-green-400">7%</span> service fee. 
+            Keep more of your revenue while we handle the tech.
           </p>
         </div>
 
