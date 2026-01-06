@@ -10,7 +10,7 @@ export default function AdminLayout() {
     <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar (desktop) */}
       <div className="hidden md:block w-64 flex-shrink-0">
-        <div className="fixed w-64 h-full">
+        <div className=" sticky top-0 h-screen  left-0 w-64 min-h-0 overflow-y-auto">
           <AdminSidebar />
         </div>
       </div>

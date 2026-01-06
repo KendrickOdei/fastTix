@@ -86,11 +86,8 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) 
 
             setUser(response.user)
 
-            if (response.user.role === 'attendee') {
-                toast.success(`Welcome ${response.user.userName}`)
-            } else {
-                toast.success(`Welcome ${response.user.organizationName || response.user.userName}`)
-            }
+             toast.success('Logged In Successful')
+           
 
         } catch (error: any) {
             toast.error(error.message || 'Login failed')

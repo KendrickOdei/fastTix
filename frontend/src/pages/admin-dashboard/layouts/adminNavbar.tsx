@@ -11,7 +11,7 @@ const AdminNavbar = ({ onMenuClick }: { onMenuClick: () => void }) => {
   const pageTitle = location.pathname.split('/').pop()?.replace('-', ' ') || 'Admin';
 
   return (
-    <header className="bg-white w-full border-b border-gray-200 h-20 flex items-center justify-between px-8 sticky top-0 z-30">
+    <header className="bg-white w-full border-b border-gray-200 h-20 flex items-center justify-between px-8 top-0 z-30">
       {/* Mobile menu button */}
       <button className="md:hidden" onClick={onMenuClick}>
         <Menu size={28} />

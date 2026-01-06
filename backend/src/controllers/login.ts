@@ -15,13 +15,26 @@ export const login = asyncHandler(async(req:Request,res:Response,next:NextFuncti
 
     const {email,userName, password} = results.data
 
-//check if user exists
+    // Build query conditions properly
+    const orConditions: any[] = [];
+    
+    if (email) {
+      orConditions.push({ email: email.trim().toLowerCase() });
+    }
+    
+    if (userName) {
+      orConditions.push({ userName: userName.trim().toLowerCase() });
+    }
+
+    // If neither email nor userName provided
+    if (orConditions.length === 0) {
+      throw new AppError('Email or username required', 400);
+    }
+
+    // Find user with proper $or query
     const user = await User.findOne({
-      $or: [
-        email ? {email: email.trim().toLowerCase()} : {},
-        userName ? {userName: userName.trim().toLowerCase()}: {},
-      ],
-    })
+      $or: orConditions
+    });
 
     if(!user) throw new AppError('invalid credentials', 400)
 

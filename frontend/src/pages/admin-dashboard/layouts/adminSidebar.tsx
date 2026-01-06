@@ -15,9 +15,9 @@ const AdminSidebar = ({ isMobile, onClose }: { isMobile?: boolean; onClose?: () 
   ];
 
   return (
-    <aside className={`bg-white border-r border-gray-200 ${isMobile ? 'w-full h-full' : 'hidden md:block w-64'}`}>
+    <aside className={`bg-white border-r  border-gray-200 flex flex-col h-full ${isMobile ? 'w-full ' : 'w-64'}`}>
       {/* Header */}
-      <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+      <div className="p-6 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tighter">
           fastTix Admin
         </h1>
@@ -29,7 +29,7 @@ const AdminSidebar = ({ isMobile, onClose }: { isMobile?: boolean; onClose?: () 
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
           <NavLink
             key={item.path}
