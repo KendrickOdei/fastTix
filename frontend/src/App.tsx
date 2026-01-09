@@ -62,7 +62,6 @@ function App() {
           <Route path="/event-details/:id" element={<EventDetails />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/guest-checkout" element={<GuestCheckout />} />
-          <Route path="/edit-event/:id" element={<EditEvent />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           
@@ -72,6 +71,8 @@ function App() {
               <Route index element={<Overview/>}/>
               <Route path="dashboard" element={<Overview/>}/>
               <Route path="create-event" element={<CreateEvents/>}/>
+              <Route path="edit-event/:id" element={<EditEvent />} />
+
               <Route path="/organizer/create-ticket/:eventId" element={<CreateTicket/>}/>
               <Route path="my-events" element={<MyEvents/>}/>
               <Route path="/organizer/events/:eventId/tickets" element={<TicketsList/>}/>

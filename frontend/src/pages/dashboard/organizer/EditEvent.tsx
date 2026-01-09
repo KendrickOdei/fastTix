@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiFetch } from "../../../utils/apiClient";
+import { toast } from "react-toastify";
 
 const EditEvent = () => {
   const { id } = useParams<{ id: string }>();
@@ -40,11 +41,12 @@ const EditEvent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('accessToken'); 
     if(!token){
-        alert('Please login to edit event')
-        navigate('/login')
-        return;
+        toast.error('Please login to edit event')
+;
+        return navigate('/login')
+        
     }
     
       await apiFetch(`/api/events/edit-event/${id}`, {
@@ -60,12 +62,17 @@ const EditEvent = () => {
 
     //   }
 
-      alert('event edited successfully')
-      console.log("Form submitted", form)
-      navigate("/my-events"); 
-    } catch (err) {
-      console.error("Error updating event:", err);
-    }
+      toast.success('event edited successfully')
+      navigate("/organizer/dashboard"); 
+    } catch (err: any) {
+  if (err.message === "Unauthorized") {
+    toast.error("Session expired. Please login again.");
+    navigate("/login");
+    return;
+  }
+  toast.error("Failed to update event");
+  console.error(err);
+}
   };
 
   return (

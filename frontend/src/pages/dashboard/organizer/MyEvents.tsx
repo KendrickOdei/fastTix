@@ -72,7 +72,7 @@ const MyEvents = () => {
                 </p>
                 <div className='flex px-2 gap-2'>
                   <Link
-                    to={`/edit-event/${event._id}`}
+                    to={`/organizer/edit-event/${event._id}`}
                     className="block bg-blue-600 text-white py-2 px-2 text-center rounded hover:bg-blue-700"
                   >
                     Edit Event
